@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# A new push supersedes an in-flight run on the same ref. Nobody needs the result of
+# a build for a commit that has already been replaced.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  quality:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Ordered cheapest-first so the common failure surfaces in seconds rather than
+      # after a full build.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # No database and no upstream access. The build must not need either: reads
+      # degrade to an empty state, and the environment guard is scoped to runtime.
+      # If this job starts failing, that property has regressed.
+      - name: Build
+        run: npm run build
+        env:
+          UPSTREAM_ENABLED: 'false'
+
+  migrations:
+    name: Migrations apply cleanly
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ledgerforge_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledgerforge_ci
+
+      # Catches the failure mode where a schema change was made without generating a
+      # migration for it — the app would then work locally and break on deploy.
+      - name: Check the schema matches its migrations
+        run: |
+          npx drizzle-kit generate --name ci_drift_check
+          if git diff --quiet -- drizzle/; then
+            echo "Schema and migrations agree."
+          else
+            echo "::error::Schema changes have no migration. Run 'npm run db:generate' and commit the result."
+            git --no-pager diff --stat -- drizzle/
+            exit 1
+          fi
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledgerforge_ci
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Advisory rather than blocking, for now. A high-severity advisory in a
+      # transitive dependency should not stop an unrelated fix from shipping, but it
+      # should be visible in every run. Tighten to `--audit-level=high` without
+      # `continue-on-error` once the baseline is clean.
+      - name: npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true

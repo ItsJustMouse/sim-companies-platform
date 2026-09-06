@@ -94,12 +94,21 @@ function parse(): Env {
   // into CI for no benefit.
   const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
   if (value.NODE_ENV === 'production' && !isBuildPhase) {
-    const missing: string[] = [];
-    if (!value.AUTH_SECRET) missing.push('AUTH_SECRET');
-    if (value.DATABASE_URL.includes('postgres:postgres@localhost')) missing.push('DATABASE_URL');
-    if (missing.length > 0) {
+    // Two distinct failures, reported distinctly. "Missing DATABASE_URL" when the
+    // variable is in fact set to the development default sends an operator hunting
+    // for the wrong problem — at exactly the moment they can least afford it.
+    const problems: string[] = [];
+    if (!value.AUTH_SECRET) {
+      problems.push('AUTH_SECRET is not set. Generate one with: openssl rand -base64 48');
+    }
+    if (value.DATABASE_URL.includes('postgres:postgres@localhost')) {
+      problems.push(
+        'DATABASE_URL still points at the local development database with the default password. Set it to your production database.',
+      );
+    }
+    if (problems.length > 0) {
       throw new Error(
-        `Missing required production environment variables: ${missing.join(', ')}. See .env.example.`,
+        `Refusing to start in production:\n${problems.map((p) => `  - ${p}`).join('\n')}\nSee .env.example.`,
       );
     }
   }
