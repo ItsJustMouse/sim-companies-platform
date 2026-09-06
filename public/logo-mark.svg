@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ledgerforge">
+  <!--
+    Ledgerforge mark.
+
+    Three ascending columns (a ledger, and a rising market) standing on an anvil
+    base (the forge, and production). The tallest column carries a struck notch
+    where the two ideas meet. Drawn on a 64-unit grid with 4-unit rhythm so it
+    stays crisp at favicon sizes.
+  -->
+  <defs>
+    <linearGradient id="lf-heat" x1="0" y1="64" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bd5f0e"/>
+      <stop offset="0.55" stop-color="#e07c15"/>
+      <stop offset="1" stop-color="#f4b25c"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="#11151c"/>
+
+  <!-- Ledger columns, ascending left to right. -->
+  <rect x="14" y="30" width="7" height="14" rx="2" fill="#38bdf8" opacity="0.85"/>
+  <rect x="25" y="23" width="7" height="21" rx="2" fill="#7dd3fc" opacity="0.9"/>
+  <rect x="36" y="14" width="7" height="30" rx="2" fill="url(#lf-heat)"/>
+
+  <!-- Struck notch on the tallest column: the forge mark. -->
+  <path d="M36 26 L43 20 L43 27 L36 33 Z" fill="#11151c" opacity="0.55"/>
+
+  <!-- Anvil base. -->
+  <path d="M12 48 h40 a4 4 0 0 1 4 4 v2 a2 2 0 0 1 -2 2 H10 a2 2 0 0 1 -2 -2 v-2 a4 4 0 0 1 4 -4 Z" fill="url(#lf-heat)"/>
+</svg>
