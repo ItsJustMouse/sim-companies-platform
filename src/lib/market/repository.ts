@@ -283,23 +283,41 @@ export function priceAtQuality(
   return quality === 0 ? fallback : null;
 }
 
+/**
+ * Earliest observation we hold for a series, at any resolution.
+ *
+ * Must consider candles as well as raw snapshots. Retention prunes raw rows after a
+ * few weeks while daily candles are kept indefinitely, so looking at snapshots alone
+ * makes the site understate its own coverage — and worse, claim a collection start
+ * date *later* than data the MAX chart happily draws.
+ */
 export async function earliestObservation(realmId: number, resourceId: number): Promise<string | null> {
-  const [row] = await db()
-    .select({ at: sql<Date | null>`min(${marketSnapshots.observedAt})` })
-    .from(marketSnapshots)
-    .where(and(eq(marketSnapshots.realmId, realmId), eq(marketSnapshots.resourceId, resourceId)));
-  const at = row?.at ?? null;
-  return at ? new Date(at).toISOString() : null;
+  const [row] = (await db().execute(sql`
+    SELECT least(
+      (SELECT min(observed_at) FROM market_snapshots
+        WHERE realm_id = ${realmId} AND resource_id = ${resourceId}),
+      (SELECT min(bucket_start) FROM market_candles
+        WHERE realm_id = ${realmId} AND resource_id = ${resourceId})
+    ) AS at
+  `)) as unknown as { at: Date | string | null }[];
+  return toIsoOrNull(row?.at ?? null);
 }
 
-/** Overall collection start across the whole realm, for the "since" label. */
+/** Overall collection start across the whole realm, for the "history since" label. */
 export async function collectionStart(realmId: number): Promise<string | null> {
-  const [row] = await db()
-    .select({ at: sql<Date | null>`min(${marketSnapshots.observedAt})` })
-    .from(marketSnapshots)
-    .where(eq(marketSnapshots.realmId, realmId));
-  const at = row?.at ?? null;
-  return at ? new Date(at).toISOString() : null;
+  const [row] = (await db().execute(sql`
+    SELECT least(
+      (SELECT min(observed_at) FROM market_snapshots WHERE realm_id = ${realmId}),
+      (SELECT min(bucket_start) FROM market_candles  WHERE realm_id = ${realmId})
+    ) AS at
+  `)) as unknown as { at: Date | string | null }[];
+  return toIsoOrNull(row?.at ?? null);
+}
+
+function toIsoOrNull(value: Date | string | null): string | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 export async function historyForResources(

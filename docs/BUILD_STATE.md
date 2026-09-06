@@ -201,6 +201,8 @@ than reading the code:
 | Redis missed every request after boot | Offline queue disabled during initial connect |
 | Production build required runtime secrets | Env guard was not scoped to the build phase |
 | Unit counts formatted as currency | Explanation panel used the money formatter for every step |
+| "History since" understated our own coverage | Read `min(observed_at)` from raw snapshots only, so retention pruning made the site claim a start date *later* than data the MAX chart draws. Now takes the earlier of snapshots and candles |
+| Production env guard blamed the wrong variable | Reported "missing DATABASE_URL" when it was present but set to the development default |
 
 ---
 
