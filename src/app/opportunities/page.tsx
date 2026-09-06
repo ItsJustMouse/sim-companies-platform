@@ -3,6 +3,7 @@ import { scanOpportunities } from '@/lib/market/opportunities';
 import { ScannerView, type ScannerRow } from '@/components/opportunities/scanner-view';
 import { Callout, SectionHeading } from '@/components/ui/primitives';
 import { FreshnessLine } from '@/components/ui/freshness';
+import { ExportLinks } from '@/components/ui/export-links';
 import { JsonLd } from '@/components/ui/json-ld';
 import { breadcrumbs, buildMetadata } from '@/lib/seo';
 
@@ -58,7 +59,12 @@ export default async function OpportunitiesPage() {
       <SectionHeading
         title="Opportunity scanner"
         description="Every product priced against the market, ranked by what it would actually earn you."
-        action={<FreshnessLine kind="derived" observedAt={scan.observedAt} />}
+        action={
+          <div className="flex flex-wrap items-center gap-3">
+            <ExportLinks dataset="opportunities" />
+            <FreshnessLine kind="derived" observedAt={scan.observedAt} />
+          </div>
+        }
       />
 
       {scan.evaluated === 0 ? (

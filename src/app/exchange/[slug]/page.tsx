@@ -7,6 +7,7 @@ import { calculateProduction } from '@/lib/calc/production';
 import { Card, CardHeader, Callout, Delta, Stat, Badge } from '@/components/ui/primitives';
 import { FreshnessLine } from '@/components/ui/freshness';
 import { ChartPanel } from '@/components/product/chart-panel';
+import { ExportLinks } from '@/components/ui/export-links';
 import { ExplanationPanel } from '@/components/ui/explanation';
 import { JsonLd } from '@/components/ui/json-ld';
 import { breadcrumbs, buildMetadata, siteUrl } from '@/lib/seo';
@@ -204,6 +205,7 @@ export default async function ProductPage({ params }: PageProps) {
         <CardHeader
           title="Price history"
           description="Recorded by Ledgerforge from its own snapshots."
+          action={<ExportLinks dataset="history" params={{ resourceId: resource.id, realmId, rangeHours: 24 * 365 }} />}
         />
         <div className="p-4 sm:p-5">
           <ChartPanel

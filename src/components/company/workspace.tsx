@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { advise } from '@/lib/advisor/advise';
 import type { Building, Recipe, Resource } from '@/lib/game/types';
 import type { MarketRow } from '@/lib/market/service';
-import { clearCompany, readCompany, toCompanyState, validate, writeCompany, type StoredCompany } from '@/lib/company/local';
+import { toCompanyState, validate, type StoredCompany } from '@/lib/company/local';
+import { resetCompany, replaceCompany, updateCompany, useCompany } from '@/lib/company/store';
 import { Card, CardHeader, Callout, Badge, EmptyState } from '@/components/ui/primitives';
 import { NumberField, SelectField } from '@/components/calculators/fields';
 import { money, relativeTime } from '@/lib/util/format';
@@ -28,34 +29,11 @@ export interface WorkspaceCatalog {
   observedAt: string | null;
 }
 
-const EMPTY: StoredCompany = {
-  name: '',
-  realmId: 0,
-  cash: null,
-  level: null,
-  adminOverhead: 0,
-  buildings: [],
-  savedAt: '',
-};
-
 export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
-  const [company, setCompany] = useState<StoredCompany>(EMPTY);
-  const [loaded, setLoaded] = useState(false);
+  // Read through an external store rather than an effect: the value is browser-only
+  // and editable, and copying it into state on mount would cascade a render.
+  const company = useCompany();
   const [importError, setImportError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const stored = readCompany();
-    if (stored) setCompany(stored);
-    setLoaded(true);
-  }, []);
-
-  // Persist on change, but only after the initial read, so an empty first render
-  // cannot wipe a saved company.
-  useEffect(() => {
-    if (!loaded) return;
-    if (company.name.trim() === '' && company.buildings.length === 0) return;
-    writeCompany({ ...company, savedAt: new Date().toISOString() });
-  }, [company, loaded]);
 
   const indexes = useMemo(
     () => ({
@@ -80,7 +58,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
   );
 
   function addBuilding() {
-    setCompany((current) => ({
+    updateCompany((current) => ({
       ...current,
       buildings: [
         ...current.buildings,
@@ -99,7 +77,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
   }
 
   function updateBuilding(index: number, patch: Partial<StoredCompany['buildings'][number]>) {
-    setCompany((current) => ({
+    updateCompany((current) => ({
       ...current,
       buildings: current.buildings.map((building, i) => (i === index ? { ...building, ...patch } : building)),
     }));
@@ -118,7 +96,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
         setImportError('That does not look like a Ledgerforge company export.');
         return;
       }
-      setCompany(parsed);
+      replaceCompany(parsed);
       setImportError(null);
     } catch {
       setImportError('That is not valid JSON.');
@@ -161,7 +139,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
                   value={company.name}
                   maxLength={80}
                   placeholder="For your own reference"
-                  onChange={(event) => setCompany((c) => ({ ...c, name: event.target.value }))}
+                  onChange={(event) => updateCompany((c) => ({ ...c, name: event.target.value }))}
                   className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
                 />
               </label>
@@ -173,7 +151,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
                 min={0}
                 max={1e15}
                 step={1000}
-                onChange={(value) => setCompany((c) => ({ ...c, cash: value }))}
+                onChange={(value) => updateCompany((c) => ({ ...c, cash: value }))}
               />
 
               <NumberField
@@ -183,7 +161,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
                 min={0}
                 max={100}
                 step={0.1}
-                onChange={(value) => setCompany((c) => ({ ...c, adminOverhead: value }))}
+                onChange={(value) => updateCompany((c) => ({ ...c, adminOverhead: value }))}
                 hint="From your company overview. This is what makes the advice specific to you rather than generic."
               />
             </div>
@@ -221,7 +199,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
                       <button
                         type="button"
                         onClick={() =>
-                          setCompany((c) => ({ ...c, buildings: c.buildings.filter((_, i) => i !== index) }))
+                          updateCompany((c) => ({ ...c, buildings: c.buildings.filter((_, i) => i !== index) }))
                         }
                         aria-label={`Remove ${building.label}`}
                         className="rounded border border-[var(--border)] px-1.5 py-1 text-xs text-[var(--text-muted)]"
@@ -293,10 +271,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
               {importError ? <p className="text-xs text-[var(--danger)]">{importError}</p> : null}
               <button
                 type="button"
-                onClick={() => {
-                  clearCompany();
-                  setCompany(EMPTY);
-                }}
+                onClick={resetCompany}
                 className="w-full rounded-md border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--danger)]"
               >
                 Delete everything stored in this browser

@@ -4,6 +4,7 @@ import { DEFAULT_REALM_ID } from '@/lib/game/constants';
 import { ExchangeTable, type ExchangeRow } from '@/components/exchange/exchange-table';
 import { Callout, SectionHeading } from '@/components/ui/primitives';
 import { FreshnessLine } from '@/components/ui/freshness';
+import { ExportLinks } from '@/components/ui/export-links';
 import { buildMetadata, breadcrumbs } from '@/lib/seo';
 import { JsonLd } from '@/components/ui/json-ld';
 
@@ -75,7 +76,9 @@ export default async function ExchangePage() {
         title="Exchange"
         description="Every tracked product, with current price, supply and recent movement."
         action={
-          <FreshnessLine
+          <div className="flex flex-wrap items-center gap-3">
+            <ExportLinks dataset="market" />
+            <FreshnessLine
             kind={overview.degraded ? 'unavailable' : 'collected'}
             observedAt={overview.observedAt}
             note={
@@ -83,7 +86,8 @@ export default async function ExchangePage() {
                 ? `history since ${new Date(overview.collectionStartedAt).toISOString().slice(0, 10)}`
                 : undefined
             }
-          />
+            />
+          </div>
         }
       />
 
