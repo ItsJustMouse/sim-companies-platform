@@ -53,6 +53,11 @@ export interface Opportunity {
   readonly building: Building | null;
   readonly salePrice: number | null;
   readonly costPerUnit: number | null;
+  /** Cost breakdown, so consumers never have to reconstruct it by subtraction. */
+  readonly inputCostPerUnit: number | null;
+  readonly labourCostPerUnit: number;
+  readonly transportCostPerUnit: number;
+  readonly netRevenuePerUnit: number | null;
   readonly profitPerUnit: number | null;
   readonly profitPerHour: number | null;
   readonly profitPerDay: number | null;
@@ -182,6 +187,10 @@ export async function scanOpportunities(
       building,
       salePrice,
       costPerUnit: result.totalCostPerUnit,
+      inputCostPerUnit: result.inputCostPerUnit,
+      labourCostPerUnit: result.labourCostPerUnit,
+      transportCostPerUnit: result.transportCostPerUnit,
+      netRevenuePerUnit: result.netRevenuePerUnit,
       profitPerUnit: result.profitPerUnit,
       profitPerHour: result.profitPerHour,
       profitPerDay: result.profitPerDay,

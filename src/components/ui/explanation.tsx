@@ -97,7 +97,7 @@ export function ExplanationPanel<T>({
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <span className="text-[var(--text-muted)]">{step.label}</span>
                       <span className="tnum font-medium text-[var(--text)]">
-                        {step.result === null ? '—' : money(step.result)}
+                        {formatStep(step.result, step.unit)}
                         {step.unit && step.unit !== '$/unit' ? (
                           <span className="ml-1 text-[var(--text-faint)]">{step.unit}</span>
                         ) : null}
@@ -139,6 +139,18 @@ export function ExplanationPanel<T>({
       </details>
     </div>
   );
+}
+
+/**
+ * Formats a step result according to its unit.
+ *
+ * Only monetary steps get a currency symbol. Rendering "8 units/hour" as "$8.000"
+ * is the kind of small wrongness that makes a reader doubt the numbers that matter.
+ */
+function formatStep(value: number | null, unit: string | undefined): string {
+  if (value === null) return '—';
+  const isMoney = unit === undefined || unit.includes('$');
+  return isMoney ? money(value) : number(value, decimalsFor(value));
 }
 
 function decimalsFor(value: number): number {
