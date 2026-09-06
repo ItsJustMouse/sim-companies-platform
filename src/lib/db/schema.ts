@@ -384,3 +384,18 @@ export const metricCounters = pgTable(
   },
   (t) => [primaryKey({ columns: [t.metric, t.day] })],
 );
+
+/**
+ * Small key/value store for operational state the admin dashboard controls:
+ * maintenance mode, the site-wide announcement, and the flag that marks a database
+ * as containing development fixtures rather than real observations.
+ *
+ * A table rather than environment variables because these must be changeable at
+ * runtime, by a person, without a redeploy.
+ */
+export const systemFlags = pgTable('system_flags', {
+  key: varchar('key', { length: 64 }).primaryKey(),
+  value: jsonb('value').notNull().default(sql`'{}'::jsonb`),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedBy: text('updated_by'),
+});

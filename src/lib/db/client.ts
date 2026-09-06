@@ -1,6 +1,7 @@
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env } from '@/lib/env';
+import { log } from '@/lib/util/logger';
 import * as schema from './schema';
 
 /**
@@ -59,3 +60,28 @@ export async function databaseHealth(): Promise<{ ok: boolean; latencyMs: number
 }
 
 export { schema };
+
+/**
+ * Runs a database read, returning `fallback` if the database is unreachable.
+ *
+ * Read paths in this application always have something sensible to show without the
+ * database — an empty market, a degraded banner — and a public page should degrade
+ * rather than return a 500. It also lets a production image build without database
+ * credentials, since prerendering simply produces the empty state and revalidation
+ * fills it in once the app is actually running.
+ *
+ * Writes deliberately do not get this treatment: a snapshot that silently fails to
+ * persist is data we can never recover.
+ */
+export async function safeRead<T>(
+  operation: () => Promise<T>,
+  fallback: T,
+  context: string,
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    log.warn('database read failed, serving fallback', { context, error });
+    return fallback;
+  }
+}

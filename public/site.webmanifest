@@ -1,0 +1,10 @@
+{
+  "name": "Ledgerforge",
+  "short_name": "Ledgerforge",
+  "description": "Independent market intelligence and production analytics for Sim Companies players.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0b0e13",
+  "theme_color": "#0b0e13",
+  "icons": [{ "src": "/logo-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

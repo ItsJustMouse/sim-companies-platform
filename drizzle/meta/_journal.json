@@ -8,6 +8,13 @@
       "when": 1788669181973,
       "tag": "0000_numerous_hairball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788669741976,
+      "tag": "0001_spotty_vargas",
+      "breakpoints": true
     }
   ]
 }

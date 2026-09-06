@@ -37,6 +37,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // We maintain our own CLAUDE.md / AGENTS.md, which point at docs/BUILD_STATE.md.
+  agentRules: false,
   poweredByHeader: false,
   output: 'standalone',
   serverExternalPackages: ['postgres', 'ioredis'],

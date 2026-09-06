@@ -35,7 +35,6 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.7",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.10.1",
     "@types/react": "19.2.7",
@@ -44,6 +43,7 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.1",
     "eslint-config-next": "16.3.4",
+    "playwright": "^1.63.0",
     "tailwindcss": "4.3.3",
     "tsx": "4.20.6",
     "typescript": "5.9.3",

@@ -1,5 +1,6 @@
 import { cache, type CacheEntry } from './store';
 import { log } from '@/lib/util/logger';
+import { UpstreamError } from '@/lib/upstream/errors';
 
 /**
  * Stale-while-revalidate read-through cache.
@@ -99,7 +100,14 @@ export async function swrTolerant<T>(
       log.warn('serving stale cache after upstream failure', { key, error });
       return present(cached, 'stale', true);
     }
-    log.error('cache miss and upstream failure', { key, error });
+    // Returning null is a supported outcome, not a failure: every caller has a
+    // database fallback behind this. Log it as a warning, and as debug when the
+    // upstream was switched off deliberately, so real incidents stay visible.
+    const deliberate = error instanceof UpstreamError && error.kind === 'disabled';
+    (deliberate ? log.debug : log.warn)('no cached value and upstream unavailable', {
+      key,
+      reason: error instanceof UpstreamError ? error.kind : 'unknown',
+    });
     return null;
   }
 }

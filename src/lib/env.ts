@@ -87,7 +87,13 @@ function parse(): Env {
   const value = parsed.data;
 
   // Production must not silently run on development defaults.
-  if (value.NODE_ENV === 'production') {
+  //
+  // Scoped to runtime rather than build: `next build` sets NODE_ENV=production and
+  // evaluates module-level configuration, but a build has no business holding
+  // production database credentials. Requiring them here would force real secrets
+  // into CI for no benefit.
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+  if (value.NODE_ENV === 'production' && !isBuildPhase) {
     const missing: string[] = [];
     if (!value.AUTH_SECRET) missing.push('AUTH_SECRET');
     if (value.DATABASE_URL.includes('postgres:postgres@localhost')) missing.push('DATABASE_URL');

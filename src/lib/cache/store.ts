@@ -1,4 +1,4 @@
-import type Redis from 'ioredis';
+import RedisCtor, { type Redis } from 'ioredis';
 import { env } from '@/lib/env';
 import { log } from '@/lib/util/logger';
 
@@ -111,13 +111,15 @@ export function cache(): CacheStore {
     store = new MemoryStore();
     return store;
   }
-  // Imported lazily so the dependency is never loaded in deployments without Redis.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RedisCtor = require('ioredis') as typeof import('ioredis').default;
   const client = new RedisCtor(url, {
+    // Fail a command after a couple of attempts rather than retrying forever: the
+    // caller always has a database fallback, so a slow cache is worse than no cache.
     maxRetriesPerRequest: 2,
-    enableOfflineQueue: false,
-    lazyConnect: false,
+    // Commands issued before the socket finishes connecting are queued rather than
+    // rejected. Without this, every request during the first few hundred milliseconds
+    // after boot misses the cache and hits the database for no reason.
+    enableOfflineQueue: true,
+    connectTimeout: 5_000,
   });
   client.on('error', (error: Error) => log.warn('redis error', { error }));
   store = new RedisStore(client);
