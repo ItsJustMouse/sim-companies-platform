@@ -1,21 +1,17 @@
 import { cache as requestCache } from 'react';
-import { cacheKeys, cachePolicy } from '@/lib/cache/keys';
-import { swrTolerant } from '@/lib/cache/swr';
-import { fetchMarketOffers } from '@/lib/upstream/api';
 import { log } from '@/lib/util/logger';
 import { safeRead } from '@/lib/db/client';
 import type { MarketOffer, MarketQuote, Resource } from '@/lib/game/types';
 import { getResources } from '@/lib/catalog/service';
-import { buildQuote } from './quote';
 import * as repo from './repository';
 import { classifyTrend, liquidityScore, priceChange, volatility, type ChangeResult, type PricePoint } from './statistics';
 
 /**
  * The read API the product's pages use for market data.
  *
- * Pages never touch the upstream client or the cache directly: they ask this module
- * for a quote and receive it with its freshness attached, so "how old is this
- * number" is answerable at every level of the UI.
+ * Public page reads are database-only. They never wait for or reserve a Sim Companies
+ * API request. Background ingestion owns upstream collection and persists observations
+ * here, so "how old is this number" remains answerable at every level of the UI.
  */
 
 export interface QuoteResult {
@@ -27,23 +23,8 @@ export interface QuoteResult {
 }
 
 export async function getQuote(realmId: number, resourceId: number): Promise<QuoteResult> {
-  const cached = await swrTolerant(cacheKeys.marketOffers(realmId, resourceId), cachePolicy.market, () =>
-    fetchMarketOffers(realmId, resourceId),
-  );
-
-  if (cached) {
-    const quote = buildQuote(cached.value, { resourceId, realmId, observedAt: cached.storedAt });
-    return {
-      quote,
-      offers: cached.value,
-      freshness: cached.degraded || cached.freshness === 'stale' ? 'stale' : 'live',
-      observedAt: cached.storedAt,
-      ageSeconds: cached.ageSeconds,
-    };
-  }
-
-  // Upstream unreachable and nothing cached: fall back to our own last observation.
   const snapshot = await safeRead(() => repo.latestSnapshot(realmId, resourceId), null, 'latestSnapshot');
+
   if (!snapshot) {
     return { quote: null, offers: [], freshness: 'unavailable', observedAt: null, ageSeconds: null };
   }
