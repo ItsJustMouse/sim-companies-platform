@@ -81,13 +81,22 @@ export interface MarketOffer {
 export interface MarketQuote {
   readonly resourceId: number;
   readonly realmId: number;
-  /** Cheapest asking price across all qualities. */
+  /**
+   * `ticker` means the broad market-ticker feed supplied the headline price only.
+   * `order-book` means Ledgerforge inspected the full Exchange book and therefore
+   * knows supply, listing count, quality depth and distribution statistics.
+   */
+  readonly source: 'ticker' | 'order-book';
+  /** Cheapest/headline asking price across all qualities. */
   readonly lowestPrice: number | null;
   /** Cheapest asking price at each quality level present in the book. */
   readonly pricesByQuality: Readonly<Record<number, number>>;
-  /** Total units offered across all qualities. */
-  readonly totalQuantity: number;
-  readonly offerCount: number;
+  /**
+   * Total units/listings when a full order book was observed.
+   * null means "not measured by this observation", never zero-as-unknown.
+   */
+  readonly totalQuantity: number | null;
+  readonly offerCount: number | null;
   /** Quantity-weighted mean asking price. */
   readonly weightedAveragePrice: number | null;
   readonly medianPrice: number | null;

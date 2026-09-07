@@ -25,6 +25,7 @@ export async function recordSnapshots(quotes: readonly MarketQuote[]): Promise<n
         realmId: q.realmId,
         resourceId: q.resourceId,
         observedAt: new Date(q.observedAt),
+        source: q.source,
         lowestPrice: q.lowestPrice,
         highestPrice: q.highestPrice,
         medianPrice: q.medianPrice,

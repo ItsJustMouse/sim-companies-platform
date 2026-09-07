@@ -114,12 +114,15 @@ export const marketSnapshots = pgTable(
     realmId: smallint('realm_id').notNull(),
     resourceId: integer('resource_id').notNull(),
     observedAt: timestamp('observed_at', { withTimezone: true }).notNull(),
+    /** Broad ticker observation or full order-book observation. */
+    source: varchar('source', { length: 16 }).notNull().default('order-book'),
     lowestPrice: doublePrecision('lowest_price'),
     highestPrice: doublePrecision('highest_price'),
     medianPrice: doublePrecision('median_price'),
     weightedAveragePrice: doublePrecision('weighted_average_price'),
-    totalQuantity: doublePrecision('total_quantity').notNull().default(0),
-    offerCount: integer('offer_count').notNull().default(0),
+    /** null when the ticker supplied price only and order-book depth was not measured. */
+    totalQuantity: doublePrecision('total_quantity'),
+    offerCount: integer('offer_count'),
     /** `{ "<quality>": price }` — cheapest offer satisfying each quality level. */
     pricesByQuality: jsonb('prices_by_quality').notNull().default(sql`'{}'::jsonb`),
   },

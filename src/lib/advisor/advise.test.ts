@@ -41,6 +41,7 @@ function row(resourceId: number, price: number): MarketRow {
     quote: {
       resourceId,
       realmId: 0,
+      source: 'order-book',
       lowestPrice: price,
       pricesByQuality: { 0: price },
       totalQuantity: 10_000,

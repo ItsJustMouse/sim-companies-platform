@@ -50,6 +50,11 @@ const schema = z.object({
   // ---- Ingestion --------------------------------------------------------
   /** Whether this process should run the background scheduler. */
   WORKER_ENABLED: bool.default(false),
+  /**
+   * Catalog endpoints originally inferred during development are not currently
+   * verified and return 404. Keep scheduled catalog access disabled until replaced.
+   */
+  CATALOG_SYNC_ENABLED: bool.default(false),
   /** Minutes between full exchange sweeps. Upstream guidance is conservative. */
   MARKET_SNAPSHOT_INTERVAL_MINUTES: z.coerce.number().int().min(5).default(15),
   CATALOG_SYNC_INTERVAL_MINUTES: z.coerce.number().int().min(30).default(720),

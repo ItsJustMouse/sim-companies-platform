@@ -52,8 +52,8 @@ export default async function ExchangePage() {
       change7d: row.change7d?.percent ?? null,
       volatility: row.volatility7d,
       liquidity: row.liquidity,
-      quantity: row.quote?.totalQuantity ?? 0,
-      offers: row.quote?.offerCount ?? 0,
+      quantity: row.quote?.totalQuantity ?? null,
+      offers: row.quote?.offerCount ?? null,
       spark,
       observedAt: row.observedAt,
     };

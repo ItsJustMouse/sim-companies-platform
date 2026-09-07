@@ -61,8 +61,26 @@ export default async function HomePage() {
     .filter((o) => (o.profitPerHour ?? 0) > 0)
     .slice(0, 5);
 
-  const totalSupply = priced.reduce((sum, row) => sum + (row.quote?.totalQuantity ?? 0), 0);
-  const totalListings = priced.reduce((sum, row) => sum + (row.quote?.offerCount ?? 0), 0);
+  /*
+   * Market-wide depth totals are meaningful only when every priced product in the
+   * snapshot has a full order-book observation. Ticker-only snapshots deliberately
+   * leave these values null.
+   */
+  const hasCompleteDepth =
+    priced.length > 0 &&
+    priced.every(
+      (row) =>
+        row.quote?.totalQuantity != null &&
+        row.quote?.offerCount != null,
+    );
+
+  const totalSupply = hasCompleteDepth
+    ? priced.reduce((sum, row) => sum + (row.quote?.totalQuantity ?? 0), 0)
+    : null;
+
+  const totalListings = hasCompleteDepth
+    ? priced.reduce((sum, row) => sum + (row.quote?.offerCount ?? 0), 0)
+    : null;
 
   return (
     <div className="space-y-10">

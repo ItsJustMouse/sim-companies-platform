@@ -23,6 +23,7 @@ export function buildQuote(
     return {
       resourceId: args.resourceId,
       realmId: args.realmId,
+      source: 'order-book',
       lowestPrice: null,
       pricesByQuality: {},
       totalQuantity: 0,
@@ -58,6 +59,7 @@ export function buildQuote(
   return {
     resourceId: args.resourceId,
     realmId: args.realmId,
+    source: 'order-book',
     lowestPrice: prices[0] ?? null,
     pricesByQuality,
     totalQuantity,
@@ -66,6 +68,36 @@ export function buildQuote(
     medianPrice: median(prices),
     highestPrice: prices[prices.length - 1] ?? null,
     qualitiesAvailable: qualities,
+    observedAt,
+  };
+}
+
+/**
+ * Converts one whole-market ticker row into the common market observation shape.
+ *
+ * The ticker does NOT expose order-book depth. Those fields are deliberately null:
+ * unknown supply/listing depth must never masquerade as zero.
+ */
+export function buildTickerQuote(
+  entry: {
+    resourceId: number;
+    realmId: number;
+    price: number | null;
+  },
+  observedAt: string = new Date().toISOString(),
+): MarketQuote {
+  return {
+    resourceId: entry.resourceId,
+    realmId: entry.realmId,
+    source: 'ticker',
+    lowestPrice: entry.price,
+    pricesByQuality: entry.price === null ? {} : { 0: entry.price },
+    totalQuantity: null,
+    offerCount: null,
+    weightedAveragePrice: null,
+    medianPrice: null,
+    highestPrice: null,
+    qualitiesAvailable: entry.price === null ? [] : [0],
     observedAt,
   };
 }

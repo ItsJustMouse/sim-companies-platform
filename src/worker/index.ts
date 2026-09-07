@@ -29,8 +29,10 @@ function schedules(): Schedule[] {
   const config = env();
   const minute = 60_000;
 
-  return [
-    {
+  const result: Schedule[] = [];
+
+  if (config.CATALOG_SYNC_ENABLED) {
+    result.push({
       name: 'catalog-sync',
       intervalMs: config.CATALOG_SYNC_INTERVAL_MINUTES * minute,
       initialDelayMs: 0,
@@ -39,7 +41,10 @@ function schedules(): Schedule[] {
           await runJob(`catalog-sync:${realm.slug}`, (ctx) => syncCatalog(ctx, realm.id));
         }
       },
-    },
+    });
+  }
+
+  result.push(
     {
       name: 'market-snapshot',
       intervalMs: config.MARKET_SNAPSHOT_INTERVAL_MINUTES * minute,
@@ -79,7 +84,9 @@ function schedules(): Schedule[] {
         }
       },
     },
-  ];
+  );
+
+  return result;
 }
 
 const timers: NodeJS.Timeout[] = [];

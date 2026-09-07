@@ -154,7 +154,7 @@ export default async function ProductPage({ params }: PageProps) {
               priceCurrency: 'XXX',
               lowPrice: quote.lowestPrice,
               highPrice: quote.highestPrice ?? quote.lowestPrice,
-              offerCount: quote.offerCount,
+              ...(quote.offerCount !== null ? { offerCount: quote.offerCount } : {}),
               availability: 'https://schema.org/InStock',
             },
           }}
@@ -192,7 +192,15 @@ export default async function ProductPage({ params }: PageProps) {
           <Stat label="24h" value={<Delta percent={change24h?.percent ?? null} />} />
           <Stat label="7d" value={<Delta percent={change7d?.percent ?? null} />} />
           <Stat label="30d" value={<Delta percent={change30d?.percent ?? null} />} />
-          <Stat label="Supply" value={compactNumber(quote?.totalQuantity ?? null)} hint={`${quote?.offerCount ?? 0} listings`} />
+          <Stat
+            label="Supply"
+            value={compactNumber(quote?.totalQuantity ?? null)}
+            hint={
+              quote?.offerCount == null
+                ? 'Order-book depth not measured'
+                : `${quote.offerCount} listings`
+            }
+          />
           <Stat
             label="Volatility (7d)"
             value={vol === null ? '—' : `${vol.toFixed(1)}%`}

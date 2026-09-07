@@ -30,8 +30,9 @@ export interface ExchangeRow {
   change7d: number | null;
   volatility: number | null;
   liquidity: number | null;
-  quantity: number;
-  offers: number;
+  /** null means this snapshot did not inspect the full order book. */
+  quantity: number | null;
+  offers: number | null;
   spark: number[];
   observedAt: string | null;
 }
@@ -284,7 +285,7 @@ export function ExchangeTable({ rows, qualities }: { rows: readonly ExchangeRow[
                   <td className="tnum px-3 py-1.5 text-right text-[var(--text-muted)]">{row.liquidity ?? '—'}</td>
                   <td className="tnum px-3 py-1.5 text-right text-[var(--text-muted)]">{compactNumber(row.quantity)}</td>
                   {showOptional ? (
-                    <td className="tnum px-3 py-1.5 text-right text-[var(--text-muted)]">{row.offers}</td>
+                    <td className="tnum px-3 py-1.5 text-right text-[var(--text-muted)]">{row.offers ?? '—'}</td>
                   ) : null}
                   <td className="px-3 py-1.5 text-right">
                     <span className="inline-flex justify-end"><Sparkline values={row.spark} /></span>

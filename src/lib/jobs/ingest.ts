@@ -3,8 +3,8 @@ import { db } from '@/lib/db/client';
 import { marketCandles, marketSnapshots } from '@/lib/db/schema';
 import { DEFAULT_REALM_ID, type RealmId } from '@/lib/game/constants';
 import { catalogRepository } from '@/lib/catalog/service';
-import { fetchBuildings, fetchMarketOffers, fetchResourceDetail, fetchResources } from '@/lib/upstream/api';
-import { buildQuote } from '@/lib/market/quote';
+import { fetchBuildings, fetchMarketTicker, fetchResourceDetail, fetchResources } from '@/lib/upstream/api';
+import { buildTickerQuote } from '@/lib/market/quote';
 import { persistQuotes } from '@/lib/market/service';
 import { FLAG_KEYS, setFlag } from '@/lib/db/flags';
 import { log } from '@/lib/util/logger';
@@ -24,6 +24,14 @@ import type { MarketQuote } from '@/lib/game/types';
 
 /** Refreshes the game catalog: resources, buildings and recipes. */
 export async function syncCatalog(context: JobContext, realmId: RealmId = DEFAULT_REALM_ID): Promise<JobResult> {
+  if (!env().CATALOG_SYNC_ENABLED) {
+    log.warn('catalog sync skipped: live catalog endpoints are not yet verified');
+    return {
+      itemsProcessed: 0,
+      detail: { reason: 'catalog-sync-disabled-pending-live-contract' },
+    };
+  }
+
   const resources = await fetchResources(realmId);
   await catalogRepository.upsertResources(realmId, resources);
   context.progress(resources.length);
@@ -66,39 +74,40 @@ export async function syncCatalog(context: JobContext, realmId: RealmId = DEFAUL
  * This is the job that builds the historical dataset. The game publishes no price
  * history, so every chart on the site is made of rows this function wrote.
  */
-export async function snapshotMarket(context: JobContext, realmId: RealmId = DEFAULT_REALM_ID): Promise<JobResult> {
-  const resources = await catalogRepository.listResources(realmId);
-  if (resources.length === 0) {
-    log.warn('market snapshot skipped: catalog is empty, run the catalog sync first');
-    return { itemsProcessed: 0, detail: { reason: 'empty-catalog' } };
-  }
-
-  // One timestamp for the whole sweep, so a cross-sectional query ("everything as of
-  // time T") returns a coherent picture rather than a smear across several minutes.
+export async function snapshotMarket(
+  context: JobContext,
+  realmId: RealmId = DEFAULT_REALM_ID,
+): Promise<JobResult> {
+  /*
+   * VERIFIED LIVE:
+   *   GET /api/v3/market-ticker/{realmId}/
+   *
+   * One request returns the headline market price for the whole realm. This replaces
+   * the original one-order-book-per-resource sweep, which is incompatible with the
+   * game's conservative API guidance.
+   */
+  const ticker = await fetchMarketTicker(realmId);
   const observedAt = new Date().toISOString();
 
-  const quotes: MarketQuote[] = [];
-  let failures = 0;
-  let emptyBooks = 0;
+  const quotes: MarketQuote[] = ticker.map((entry) =>
+    buildTickerQuote(entry, observedAt),
+  );
 
-  for (const resource of resources) {
-    try {
-      const offers = await fetchMarketOffers(realmId, resource.id);
-      if (offers.length === 0) emptyBooks += 1;
-      quotes.push(buildQuote(offers, { resourceId: resource.id, realmId, observedAt }));
-    } catch (error) {
-      failures += 1;
-      log.warn('market fetch failed for resource', { resourceId: resource.id, error });
-    }
-    context.progress(quotes.length);
-  }
+  context.progress(quotes.length);
 
   const written = await persistQuotes(quotes);
   if (written > 0) await clearFixtureFlagIfSet();
 
   return {
     itemsProcessed: written,
-    detail: { requested: resources.length, failures, emptyBooks, observedAt },
+    detail: {
+      received: ticker.length,
+      priced: ticker.filter((entry) => entry.price !== null).length,
+      soldOut: ticker.filter((entry) => entry.soldOut).length,
+      source: 'market-ticker',
+      upstreamRequests: 1,
+      observedAt,
+    },
   };
 }
 

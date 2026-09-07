@@ -61,12 +61,13 @@ export function snapshotToQuote(snapshot: {
   realmId: number;
   resourceId: number;
   observedAt: Date;
+  source: string;
   lowestPrice: number | null;
   highestPrice: number | null;
   medianPrice: number | null;
   weightedAveragePrice: number | null;
-  totalQuantity: number;
-  offerCount: number;
+  totalQuantity: number | null;
+  offerCount: number | null;
   pricesByQuality: unknown;
 }): MarketQuote {
   const pricesByQuality = (snapshot.pricesByQuality ?? {}) as Record<string, number>;
@@ -78,6 +79,7 @@ export function snapshotToQuote(snapshot: {
   return {
     resourceId: snapshot.resourceId,
     realmId: snapshot.realmId,
+    source: snapshot.source === 'ticker' ? 'ticker' : 'order-book',
     lowestPrice: snapshot.lowestPrice,
     highestPrice: snapshot.highestPrice,
     medianPrice: snapshot.medianPrice,
@@ -164,7 +166,10 @@ export const getMarketOverview = requestCache(async function getMarketOverview(
       change24h,
       change7d: priceChange(series, 24 * 7),
       volatility7d: volatility(last7d),
-      liquidity: quote ? liquidityScore(quote.totalQuantity, quote.offerCount) : null,
+      liquidity:
+        quote && quote.totalQuantity !== null && quote.offerCount !== null
+          ? liquidityScore(quote.totalQuantity, quote.offerCount)
+          : null,
       trend: classifyTrend(change24h),
       high30d: prices.length > 0 ? Math.max(...prices) : null,
       low30d: prices.length > 0 ? Math.min(...prices) : null,
