@@ -14,6 +14,7 @@ import type { PricePoint } from './statistics';
  */
 
 export type CandleInterval = '1h' | '1d';
+export type MarketSnapshotSource = 'ticker' | 'order-book';
 
 export async function recordSnapshots(quotes: readonly MarketQuote[]): Promise<number> {
   if (quotes.length === 0) return 0;
@@ -42,22 +43,32 @@ export async function recordSnapshots(quotes: readonly MarketQuote[]): Promise<n
   return quotes.length;
 }
 
-export async function latestSnapshot(
+/** Most recent observation from one specific collection source. */
+export async function latestSnapshotBySource(
   realmId: number,
   resourceId: number,
+  source: MarketSnapshotSource,
 ): Promise<typeof marketSnapshots.$inferSelect | null> {
   const [row] = await db()
     .select()
     .from(marketSnapshots)
-    .where(and(eq(marketSnapshots.realmId, realmId), eq(marketSnapshots.resourceId, resourceId)))
+    .where(
+      and(
+        eq(marketSnapshots.realmId, realmId),
+        eq(marketSnapshots.resourceId, resourceId),
+        eq(marketSnapshots.source, source),
+      ),
+    )
     .orderBy(desc(marketSnapshots.observedAt))
     .limit(1);
+
   return row ?? null;
 }
 
 /** Most recent snapshot for every resource in one query, for market-wide views. */
 export async function latestSnapshotPerResource(
   realmId: number,
+  source: MarketSnapshotSource = 'ticker',
 ): Promise<Map<number, typeof marketSnapshots.$inferSelect>> {
   const rows = await db()
     .select()
@@ -65,12 +76,12 @@ export async function latestSnapshotPerResource(
     .where(
       and(
         eq(marketSnapshots.realmId, realmId),
-        // DISTINCT ON is the efficient Postgres idiom for "latest row per group" and
-        // uses the (realm, resource, observed_at) primary key directly.
+        eq(marketSnapshots.source, source),
         sql`(${marketSnapshots.resourceId}, ${marketSnapshots.observedAt}) IN (
           SELECT resource_id, max(observed_at)
           FROM market_snapshots
           WHERE realm_id = ${realmId}
+            AND source = ${source}
           GROUP BY resource_id
         )`,
       ),
@@ -89,6 +100,7 @@ export async function snapshotsAround(
   realmId: number,
   at: Date,
   toleranceMinutes: number,
+  source: MarketSnapshotSource = 'ticker',
 ): Promise<Map<number, typeof marketSnapshots.$inferSelect>> {
   const from = new Date(at.getTime() - toleranceMinutes * 60_000);
   const to = new Date(at.getTime() + toleranceMinutes * 60_000);
@@ -99,23 +111,26 @@ export async function snapshotsAround(
     .where(
       and(
         eq(marketSnapshots.realmId, realmId),
+        eq(marketSnapshots.source, source),
         gte(marketSnapshots.observedAt, from),
         lte(marketSnapshots.observedAt, to),
       ),
     )
     .orderBy(asc(marketSnapshots.observedAt));
 
-  // Keep the observation closest to the requested instant for each resource.
   const map = new Map<number, typeof marketSnapshots.$inferSelect>();
   for (const row of rows) {
     const existing = map.get(row.resourceId);
+
     if (
       !existing ||
-      Math.abs(row.observedAt.getTime() - at.getTime()) < Math.abs(existing.observedAt.getTime() - at.getTime())
+      Math.abs(row.observedAt.getTime() - at.getTime()) <
+        Math.abs(existing.observedAt.getTime() - at.getTime())
     ) {
       map.set(row.resourceId, row);
     }
   }
+
   return map;
 }
 
@@ -142,7 +157,8 @@ export async function readHistory(query: HistoryQuery): Promise<HistorySeries> {
   const quality = query.quality ?? 0;
   const resolution = query.interval ?? chooseResolution(query.from, to);
 
-  const collectionStartedAt = await earliestObservation(query.realmId, query.resourceId);
+  const source: MarketSnapshotSource = quality === 0 ? 'ticker' : 'order-book';
+  const collectionStartedAt = await earliestObservation(query.realmId, query.resourceId, quality);
 
   if (resolution === 'raw') {
     const rows = await db()
@@ -152,6 +168,7 @@ export async function readHistory(query: HistoryQuery): Promise<HistorySeries> {
         and(
           eq(marketSnapshots.realmId, query.realmId),
           eq(marketSnapshots.resourceId, query.resourceId),
+          eq(marketSnapshots.source, source),
           gte(marketSnapshots.observedAt, query.from),
           lte(marketSnapshots.observedAt, to),
         ),
@@ -222,6 +239,8 @@ async function aggregateFromSnapshots(args: {
   to: Date;
 }): Promise<PricePoint[]> {
   const unit = args.interval === '1h' ? 'hour' : 'day';
+  const source: MarketSnapshotSource = args.quality === 0 ? 'ticker' : 'order-book';
+
   // `unit` is derived from a closed union above, never from user input.
   const priceExpr =
     args.quality === 0
@@ -238,6 +257,7 @@ async function aggregateFromSnapshots(args: {
     FROM market_snapshots
     WHERE realm_id = ${args.realmId}
       AND resource_id = ${args.resourceId}
+      AND source = ${source}
       AND observed_at >= ${args.from.toISOString()}::timestamptz
       AND observed_at <= ${args.to.toISOString()}::timestamptz
       AND ${priceExpr} IS NOT NULL
@@ -293,15 +313,37 @@ export function priceAtQuality(
  * makes the site understate its own coverage — and worse, claim a collection start
  * date *later* than data the MAX chart happily draws.
  */
-export async function earliestObservation(realmId: number, resourceId: number): Promise<string | null> {
+export async function earliestObservation(
+  realmId: number,
+  resourceId: number,
+  quality = 0,
+): Promise<string | null> {
+  const source: MarketSnapshotSource = quality === 0 ? 'ticker' : 'order-book';
+  const priceExpr =
+    quality === 0
+      ? sql`lowest_price`
+      : sql`(prices_by_quality ->> ${String(quality)})::double precision`;
+
   const [row] = (await db().execute(sql`
     SELECT least(
-      (SELECT min(observed_at) FROM market_snapshots
-        WHERE realm_id = ${realmId} AND resource_id = ${resourceId}),
-      (SELECT min(bucket_start) FROM market_candles
-        WHERE realm_id = ${realmId} AND resource_id = ${resourceId})
+      (
+        SELECT min(observed_at)
+        FROM market_snapshots
+        WHERE realm_id = ${realmId}
+          AND resource_id = ${resourceId}
+          AND source = ${source}
+          AND ${priceExpr} IS NOT NULL
+      ),
+      (
+        SELECT min(bucket_start)
+        FROM market_candles
+        WHERE realm_id = ${realmId}
+          AND resource_id = ${resourceId}
+          AND quality = ${quality}
+      )
     ) AS at
   `)) as unknown as { at: Date | string | null }[];
+
   return toIsoOrNull(row?.at ?? null);
 }
 
@@ -309,10 +351,21 @@ export async function earliestObservation(realmId: number, resourceId: number): 
 export async function collectionStart(realmId: number): Promise<string | null> {
   const [row] = (await db().execute(sql`
     SELECT least(
-      (SELECT min(observed_at) FROM market_snapshots WHERE realm_id = ${realmId}),
-      (SELECT min(bucket_start) FROM market_candles  WHERE realm_id = ${realmId})
+      (
+        SELECT min(observed_at)
+        FROM market_snapshots
+        WHERE realm_id = ${realmId}
+          AND source = 'ticker'
+      ),
+      (
+        SELECT min(bucket_start)
+        FROM market_candles
+        WHERE realm_id = ${realmId}
+          AND quality = 0
+      )
     ) AS at
   `)) as unknown as { at: Date | string | null }[];
+
   return toIsoOrNull(row?.at ?? null);
 }
 
@@ -339,6 +392,7 @@ export async function historyForResources(
     .where(
       and(
         eq(marketSnapshots.realmId, realmId),
+        eq(marketSnapshots.source, 'ticker'),
         inArray(marketSnapshots.resourceId, [...resourceIds]),
         gte(marketSnapshots.observedAt, from),
       ),

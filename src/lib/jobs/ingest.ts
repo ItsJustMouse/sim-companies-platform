@@ -140,6 +140,7 @@ export async function buildCandles(context: JobContext, realmId: RealmId = DEFAU
     const unit = interval === '1h' ? 'hour' : 'day';
 
     for (const quality of QUALITY_SERIES) {
+      const source = quality === 0 ? 'ticker' : 'order-book';
       const priceExpr =
         quality === 0
           ? sql`lowest_price`
@@ -165,6 +166,7 @@ export async function buildCandles(context: JobContext, realmId: RealmId = DEFAU
           count(*)                                                AS sample_count
         FROM market_snapshots
         WHERE realm_id = ${realmId}
+          AND source = ${source}
           AND observed_at >= now() - ${sql.raw(`interval '${lookbackDays} days'`)}
           AND ${priceExpr} IS NOT NULL
         GROUP BY realm_id, resource_id, bucket_start

@@ -75,6 +75,7 @@ export default async function ProductPage({ params }: PageProps) {
     ]);
 
   const quote = quoteResult.quote;
+  const depthQuote = quoteResult.depthQuote;
   const series = history.points;
   const stats = summarise(series);
   const change24h = priceChange(series, 24);
@@ -124,7 +125,7 @@ export default async function ProductPage({ params }: PageProps) {
     .filter((row) => row.resource.category === resource.category && row.resource.id !== resource.id)
     .slice(0, 8);
 
-  const qualityRows = Object.entries(quote?.pricesByQuality ?? {})
+  const qualityRows = Object.entries(depthQuote?.pricesByQuality ?? {})
     .map(([q, price]) => ({ quality: Number(q), price }))
     .sort((a, b) => a.quality - b.quality);
 
@@ -203,11 +204,11 @@ export default async function ProductPage({ params }: PageProps) {
           <Stat label="30d" value={<Delta percent={change30d?.percent ?? null} />} />
           <Stat
             label="Supply"
-            value={compactNumber(quote?.totalQuantity ?? null)}
+            value={compactNumber(depthQuote?.totalQuantity ?? null)}
             hint={
-              quote?.offerCount == null
+              depthQuote?.offerCount == null
                 ? 'Order-book depth not measured'
-                : `${quote.offerCount} listings`
+                : `${depthQuote.offerCount} listings`
             }
           />
           <Stat
@@ -240,7 +241,11 @@ export default async function ProductPage({ params }: PageProps) {
         <Card className="lg:col-span-1">
           <CardHeader title="Price by quality" description="Cheapest offer at each quality or better." />
           {qualityRows.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-[var(--text-muted)]">No open listings.</p>
+            <p className="px-4 py-6 text-sm text-[var(--text-muted)]">
+              {depthQuote?.offerCount === 0
+                ? 'No open listings in the last measured order book.'
+                : 'Order-book quality depth has not been measured yet.'}
+            </p>
           ) : (
             <table className="w-full text-sm">
               <caption className="sr-only">Cheapest price for {resource.name} at each quality level</caption>

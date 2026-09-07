@@ -15,26 +15,48 @@ import { classifyTrend, liquidityScore, priceChange, volatility, type ChangeResu
  */
 
 export interface QuoteResult {
+  /** Latest headline ticker observation. */
   readonly quote: MarketQuote | null;
+  /** Latest full order-book observation, which may be older than the headline. */
+  readonly depthQuote: MarketQuote | null;
   readonly offers: readonly MarketOffer[];
   readonly freshness: 'live' | 'stale' | 'stored' | 'unavailable';
   readonly observedAt: string | null;
   readonly ageSeconds: number | null;
+  readonly depthObservedAt: string | null;
+  readonly depthAgeSeconds: number | null;
 }
 
 export async function getQuote(realmId: number, resourceId: number): Promise<QuoteResult> {
-  const snapshot = await safeRead(() => repo.latestSnapshot(realmId, resourceId), null, 'latestSnapshot');
+  const [headlineSnapshot, depthSnapshot] = await Promise.all([
+    safeRead(
+      () => repo.latestSnapshotBySource(realmId, resourceId, 'ticker'),
+      null,
+      'latestTickerSnapshot',
+    ),
+    safeRead(
+      () => repo.latestSnapshotBySource(realmId, resourceId, 'order-book'),
+      null,
+      'latestOrderBookSnapshot',
+    ),
+  ]);
 
-  if (!snapshot) {
-    return { quote: null, offers: [], freshness: 'unavailable', observedAt: null, ageSeconds: null };
-  }
+  const quote = headlineSnapshot ? snapshotToQuote(headlineSnapshot) : null;
+  const depthQuote = depthSnapshot ? snapshotToQuote(depthSnapshot) : null;
 
   return {
-    quote: snapshotToQuote(snapshot),
+    quote,
+    depthQuote,
     offers: [],
-    freshness: 'stored',
-    observedAt: snapshot.observedAt.toISOString(),
-    ageSeconds: Math.round((Date.now() - snapshot.observedAt.getTime()) / 1000),
+    freshness: quote ? 'stored' : 'unavailable',
+    observedAt: headlineSnapshot?.observedAt.toISOString() ?? null,
+    ageSeconds: headlineSnapshot
+      ? Math.round((Date.now() - headlineSnapshot.observedAt.getTime()) / 1000)
+      : null,
+    depthObservedAt: depthSnapshot?.observedAt.toISOString() ?? null,
+    depthAgeSeconds: depthSnapshot
+      ? Math.round((Date.now() - depthSnapshot.observedAt.getTime()) / 1000)
+      : null,
   };
 }
 
@@ -111,7 +133,7 @@ export const getMarketOverview = requestCache(async function getMarketOverview(
 ): Promise<MarketOverview> {
   const [{ data: resources }, latest, collectionStartedAt] = await Promise.all([
     getResources(realmId),
-    safeRead(() => repo.latestSnapshotPerResource(realmId), new Map(), 'latestSnapshotPerResource'),
+    safeRead(() => repo.latestSnapshotPerResource(realmId, 'ticker'), new Map(), 'latestSnapshotPerResource'),
     safeRead(() => repo.collectionStart(realmId), null, 'collectionStart'),
   ]);
 

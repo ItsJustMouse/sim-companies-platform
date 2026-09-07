@@ -100,7 +100,11 @@ async function evaluateOne(
   alert: typeof alerts.$inferSelect,
   productName: string,
 ): Promise<EvaluationOutcome> {
-  const snapshot = await marketRepository.latestSnapshot(alert.realmId, alert.resourceId);
+  const snapshot = await marketRepository.latestSnapshotBySource(
+    alert.realmId,
+    alert.resourceId,
+    alert.quality === 0 ? 'ticker' : 'order-book',
+  );
   if (!snapshot) {
     return { alertId: alert.id, fired: false, reason: 'no market data', observedValue: null };
   }
