@@ -4,6 +4,7 @@ import type {
   RawBuilding,
   RawCompany,
   RawMarketOffer,
+  RawMarketTickerEntry,
   RawResource,
   RawResourceDetail,
 } from './schemas';
@@ -128,7 +129,7 @@ export function normaliseRecipe(raw: RawResourceDetail): Recipe | null {
   return {
     outputResourceId,
     inputs,
-    producedIn: normaliseProducedIn(source['producedIn']),
+    producedIn: normaliseProducedIn(source['producedIn'] ?? source['producedAt']),
   };
 }
 
@@ -212,6 +213,53 @@ export function normaliseOffers(raws: readonly RawMarketOffer[], resourceId: num
       sellerName,
     });
   }
+  return out;
+}
+
+/**
+ * One resource from the whole-market ticker.
+ *
+ * This is intentionally smaller than MarketQuote because the ticker does not expose
+ * order-book depth, quality, quantities, median price or seller information.
+ */
+export interface MarketTickerEntry {
+  readonly resourceId: number;
+  readonly realmId: number;
+  readonly image: string | null;
+  readonly price: number | null;
+  readonly soldOut: boolean;
+  readonly isUp: boolean | null;
+}
+
+export function normaliseMarketTicker(
+  raws: readonly RawMarketTickerEntry[],
+  fallbackRealmId: number,
+): MarketTickerEntry[] {
+  const seen = new Set<number>();
+  const out: MarketTickerEntry[] = [];
+
+  for (const raw of raws) {
+    const source = raw as unknown as Unknowns;
+    const resourceId = firstNumber(source, 'kind');
+
+    if (resourceId === null || seen.has(resourceId)) continue;
+    seen.add(resourceId);
+
+    const rawPrice = source['price'];
+    const soldOut =
+      typeof rawPrice === 'string' &&
+      rawPrice.trim().toLowerCase() === 'sold out';
+
+    out.push({
+      resourceId,
+      realmId: firstNumber(source, 'realmId') ?? fallbackRealmId,
+      image: firstString(source, 'image'),
+      price: soldOut ? null : firstNumber(source, 'price'),
+      soldOut,
+      isUp: firstBoolean(source, 'is_up'),
+    });
+  }
+
   return out;
 }
 

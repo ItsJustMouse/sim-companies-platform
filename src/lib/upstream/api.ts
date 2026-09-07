@@ -2,11 +2,20 @@ import { httpClient } from './client';
 import {
   rawBuildingListSchema,
   rawMarketResponseSchema,
+  rawMarketTickerResponseSchema,
   rawResourceDetailSchema,
   rawResourceListSchema,
   rawCompanySchema,
 } from './schemas';
-import { normaliseBuildings, normaliseCompany, normaliseOffers, normaliseRecipe, normaliseResources } from './normalise';
+import {
+  normaliseBuildings,
+  normaliseCompany,
+  normaliseMarketTicker,
+  normaliseOffers,
+  normaliseRecipe,
+  normaliseResources,
+} from './normalise';
+import type { MarketTickerEntry } from './normalise';
 import type { Building, MarketOffer, Recipe, Resource } from '@/lib/game/types';
 import type { PublicCompany } from './normalise';
 
@@ -41,7 +50,7 @@ export async function fetchResourceDetail(
   lang = 'en',
 ): Promise<Recipe | null> {
   const raw = await httpClient().get(
-    `/api/v4/${lang}/${realmId}/encyclopedia/resources/${resourceId}/${quality}/`,
+    `/api/v4/${lang}/${realmId}/encyclopedia/resources/${quality}/${resourceId}/`,
     rawResourceDetailSchema,
   );
   return normaliseRecipe(raw);
@@ -62,8 +71,28 @@ export async function fetchBuildings(realmId: number): Promise<Building[]> {
  * often, so it is also the one the ingestion scheduler paces most carefully.
  */
 export async function fetchMarketOffers(realmId: number, resourceId: number): Promise<MarketOffer[]> {
-  const raw = await httpClient().get(`/api/v3/market/${realmId}/${resourceId}/`, rawMarketResponseSchema);
+  const raw = await httpClient().get(
+    `/api/v3/market/all/${realmId}/${resourceId}/`,
+    rawMarketResponseSchema,
+  );
   return normaliseOffers(raw, resourceId);
+}
+
+/**
+ * Whole-market headline prices in one request.
+ *
+ * Verified live:
+ *   GET /api/v3/market-ticker/{realmId}/
+ *
+ * Use this for recurring broad-market snapshots. Use fetchMarketOffers only when
+ * order-book depth, quality or quantities are actually required.
+ */
+export async function fetchMarketTicker(realmId: number): Promise<MarketTickerEntry[]> {
+  const raw = await httpClient().get(
+    `/api/v3/market-ticker/${realmId}/`,
+    rawMarketTickerResponseSchema,
+  );
+  return normaliseMarketTicker(raw, realmId);
 }
 
 /** Public profile of a company, addressed by its display name. */

@@ -68,7 +68,7 @@ from search-result summaries of it, so they are **[REPORTED]** rather than quote
 
 - **One collector for the whole site.** A Postgres advisory lock guarantees a single
   sweeping process even across replicas (`src/lib/jobs/runner.ts`).
-- **A process-wide request floor.** `UPSTREAM_MIN_INTERVAL_MS` (default 1100 ms)
+- **A process-wide request floor.** `UPSTREAM_MIN_INTERVAL_MS` (default 300000 ms / five minutes)
   serialises every outbound call through one pacer.
 - **Request coalescing.** N concurrent callers for the same path produce one request.
 - **Read-through caching with stale-while-revalidate.** Ten thousand visitors looking
@@ -89,6 +89,27 @@ from search-result summaries of it, so they are **[REPORTED]** rather than quote
 
 ---
 
+## Live verification log — 2026-09-06/07
+
+Verified directly against `www.simcompanies.com` from a normal networked development machine:
+
+- `GET /api/v4/en/0/encyclopedia/resources/` → **HTTP 404**
+- `GET /api/v4/en/0/encyclopedia/resources/0/66/` → **HTTP 200 JSON**
+  - Resource 66 = Seeds
+  - `producedFrom` includes Water (`db_letter: 2`) at `amount: 0.1`
+  - Live field is `producedAt`, e.g. `"P"`
+  - Image path is exposed as `images/resources/seeds.png`
+- `GET /api/v3/0/buildings/1/` → **HTTP 404**
+- `GET /api/v2/buildings/1/` → **HTTP 404**
+- `GET /api/v3/market/all/0/66/` → **HTTP 200 JSON**
+  - Verified full sell-order book with `kind`, `quantity`, `quality`, `price`,
+    `seller`, `posted`, and `fees`
+  - Ledgerforge successfully parsed and normalized 251 live offers during verification
+
+The resource-detail and Exchange paths are therefore verified rather than inferred.
+The catalog and building-list integrations still require replacement and must not be
+used by the automated worker until resolved.
+
 ## 3. Endpoints
 
 Base: `https://www.simcompanies.com`. Realm id is a path segment (`0` = Magnates,
@@ -98,10 +119,10 @@ Base: `https://www.simcompanies.com`. Realm id is a path segment (`0` = Magnates
 
 | Path | Purpose | Confidence | Used in |
 | --- | --- | --- | --- |
-| `GET /api/v4/{lang}/{realm}/encyclopedia/resources/` | Every resource in the game | [REPORTED] | `fetchResources` |
-| `GET /api/v4/{lang}/{realm}/encyclopedia/resources/{id}/{quality}/` | One resource including its recipe | [REPORTED] | `fetchResourceDetail` |
-| `GET /api/v3/{realm}/buildings/1/` | Building list with wages and costs | [REPORTED] | `fetchBuildings` |
-| `GET /api/v3/market/{realm}/{resourceId}/` | Open sell offers for one resource | [REPORTED] | `fetchMarketOffers` |
+| `GET /api/v4/{lang}/{realm}/encyclopedia/resources/` | Intended resource catalog | **[VERIFIED 404]** | `fetchResources` — currently broken; replacement needed |
+| `GET /api/v4/{lang}/{realm}/encyclopedia/resources/{quality}/{id}/` | One resource including its recipe | **[VERIFIED LIVE]** | `fetchResourceDetail` |
+| `GET /api/v3/{realm}/buildings/1/` | Intended building catalog | **[VERIFIED 404]** | `fetchBuildings` — currently broken; replacement needed |
+| `GET /api/v3/market/all/{realm}/{resourceId}/` | Open sell offers for one resource | **[VERIFIED LIVE]** | `fetchMarketOffers` |
 | `GET /api/v2/companies-by-company/{realm}/{name}/` | Public company profile | [REPORTED] | `fetchPublicCompany` |
 
 ### Documented by the community, not used by us

@@ -51,6 +51,29 @@ export type RawMarketOffer = z.infer<typeof rawMarketOfferSchema>;
 export const rawMarketResponseSchema = z.array(rawMarketOfferSchema);
 
 /**
+ * Whole-market headline ticker.
+ *
+ * Verified live against:
+ *   GET /api/v3/market-ticker/{realmId}/
+ *
+ * `price` is normally numeric but the game returns the literal string
+ * "sold out" when no current headline price exists.
+ */
+export const rawMarketTickerEntrySchema = z
+  .object({
+    kind: looseNumber,
+    image: optionalString,
+    price: z.union([looseNumber, z.literal('sold out')]),
+    is_up: optionalBool,
+    realmId: optionalNumber,
+  })
+  .loose();
+
+export type RawMarketTickerEntry = z.infer<typeof rawMarketTickerEntrySchema>;
+
+export const rawMarketTickerResponseSchema = z.array(rawMarketTickerEntrySchema);
+
+/**
  * One entry of the encyclopedia resource index.
  *
  * `db_letter` is the game's own identifier for a resource and is what every other
@@ -115,6 +138,15 @@ export const rawResourceDetailSchema = z
     producedFrom: z.array(rawRecipeInputSchema).optional().nullable(),
     neededFor: z.array(rawRecipeInputSchema).optional().nullable(),
     producedIn: z
+      .union([
+        optionalString,
+        z.object({ name: optionalString, kind: optionalString }).loose(),
+        z.array(z.union([optionalString, z.object({ name: optionalString, kind: optionalString }).loose()])),
+      ])
+      .optional()
+      .nullable(),
+    /** Live v4 encyclopedia field for the building kind/code that produces this resource. */
+    producedAt: z
       .union([
         optionalString,
         z.object({ name: optionalString, kind: optionalString }).loose(),

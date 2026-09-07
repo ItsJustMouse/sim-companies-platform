@@ -38,7 +38,7 @@ const schema = z.object({
     .min(1)
     .default('Ledgerforge/0.1 (+https://ledgerforge.app; independent Sim Companies companion)'),
   /** Minimum milliseconds between two upstream requests, process-wide. */
-  UPSTREAM_MIN_INTERVAL_MS: z.coerce.number().int().min(0).default(1_100),
+  UPSTREAM_MIN_INTERVAL_MS: z.coerce.number().int().min(0).default(300_000),
   UPSTREAM_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(15_000),
   UPSTREAM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
   /**
