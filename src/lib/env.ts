@@ -45,7 +45,7 @@ const schema = z.object({
    * Hard off-switch. When false the upstream client refuses to make network calls and
    * every read is served from cache/database. Used in CI, tests and offline sandboxes.
    */
-  UPSTREAM_ENABLED: bool.default(true),
+  UPSTREAM_ENABLED: bool.default(false),
 
   // ---- Ingestion --------------------------------------------------------
   /** Whether this process should run the background scheduler. */
