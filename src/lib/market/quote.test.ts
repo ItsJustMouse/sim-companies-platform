@@ -84,7 +84,8 @@ describe('buildTickerQuote', () => {
     expect(quote.lowestPrice).toBe(0.289);
     expect(quote.totalQuantity).toBeNull();
     expect(quote.offerCount).toBeNull();
-    expect(quote.pricesByQuality).toEqual({ 0: 0.289 });
+    expect(quote.pricesByQuality).toEqual({});
+    expect(quote.qualitiesAvailable).toEqual([]);
   });
 
   it('represents a sold-out ticker product with a null price', () => {

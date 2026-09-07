@@ -91,13 +91,15 @@ export function buildTickerQuote(
     realmId: entry.realmId,
     source: 'ticker',
     lowestPrice: entry.price,
-    pricesByQuality: entry.price === null ? {} : { 0: entry.price },
+    // The bulk ticker exposes a headline price but does not identify its quality.
+    // Never label that price as Q0.
+    pricesByQuality: {},
     totalQuantity: null,
     offerCount: null,
     weightedAveragePrice: null,
     medianPrice: null,
     highestPrice: null,
-    qualitiesAvailable: entry.price === null ? [] : [0],
+    qualitiesAvailable: [],
     observedAt,
   };
 }
