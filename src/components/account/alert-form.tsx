@@ -51,7 +51,9 @@ export function AlertForm({ products, hasEmail }: { products: readonly Product[]
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
           >
             {Array.from({ length: 13 }, (_, q) => (
-              <option key={q} value={q}>{q === 0 ? 'Any quality' : `Quality ${q}+`}</option>
+              <option key={q} value={q}>
+                {q === 0 ? 'Headline market price' : `Quality ${q}+`}
+              </option>
             ))}
           </select>
         </label>

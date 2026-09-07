@@ -274,7 +274,8 @@ export function priceAtQuality(
   fallback: number | null,
 ): number | null {
   if (quality === 0) {
-    // Quality 0 means "cheapest at any quality", which is exactly the lowest price.
+    // Series 0 is Ledgerforge's headline/default price sentinel. It does not mean
+    // the observed product quality was literally Q0.
     if (fallback !== null) return fallback;
   }
   if (!pricesByQuality || typeof pricesByQuality !== 'object') return fallback;

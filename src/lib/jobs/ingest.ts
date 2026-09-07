@@ -191,9 +191,10 @@ export async function buildCandles(context: JobContext, realmId: RealmId = DEFAU
  * Which quality series get their own candles.
  *
  * Every quality would multiply the table size for series almost nobody charts.
- * Quality 0 (cheapest at any quality) is the headline series; 1–5 covers the range
- * where quality premiums are routinely compared. Raw snapshots retain every quality,
- * so a rarely-viewed series is still answerable — just from raw data.
+ * Series 0 is the headline/default price series and is not a claim that the
+ * observed product quality was literally Q0. Series 1–5 are quality-specific and are
+ * populated only when a snapshot actually contains measured prices for those
+ * qualities. Raw order-book snapshots can retain additional quality detail.
  */
 const QUALITY_SERIES = [0, 1, 2, 3, 4, 5] as const;
 
