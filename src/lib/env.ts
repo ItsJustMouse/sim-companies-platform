@@ -40,7 +40,7 @@ const schema = z.object({
   /** Minimum milliseconds between two upstream requests, process-wide. */
   UPSTREAM_MIN_INTERVAL_MS: z.coerce.number().int().min(300_000).default(300_000),
   UPSTREAM_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(15_000),
-  UPSTREAM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
+  UPSTREAM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(0),
   /**
    * Hard off-switch. When false the upstream client refuses to make network calls and
    * every read is served from cache/database. Used in CI, tests and offline sandboxes.
