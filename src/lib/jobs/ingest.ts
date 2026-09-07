@@ -3,6 +3,7 @@ import { db } from '@/lib/db/client';
 import { marketCandles, marketSnapshots } from '@/lib/db/schema';
 import { DEFAULT_REALM_ID, type RealmId } from '@/lib/game/constants';
 import { catalogRepository } from '@/lib/catalog/service';
+import { resourceStubFromTicker } from '@/lib/catalog/ticker';
 import { fetchBuildings, fetchMarketTicker, fetchResourceDetail, fetchResources } from '@/lib/upstream/api';
 import { buildTickerQuote } from '@/lib/market/quote';
 import { persistQuotes } from '@/lib/market/service';
@@ -88,6 +89,15 @@ export async function snapshotMarket(
    */
   const ticker = await fetchMarketTicker(realmId);
   const observedAt = new Date().toISOString();
+
+  // The market ticker is also our cheapest verified way to discover which product
+  // IDs currently exist. Create partial catalog rows so every live price can render.
+  // Rich production/transport/category metadata remains null until independently
+  // verified from an encyclopedia source.
+  await catalogRepository.ensureTickerResources(
+    realmId,
+    ticker.map(resourceStubFromTicker),
+  );
 
   const quotes: MarketQuote[] = ticker.map((entry) =>
     buildTickerQuote(entry, observedAt),
