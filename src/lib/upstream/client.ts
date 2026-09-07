@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { env } from '@/lib/env';
 import { log } from '@/lib/util/logger';
 import { UpstreamError } from './errors';
+import { GlobalRequestPacer } from './global-pacer';
 
 /**
  * The single point through which every Sim Companies API request passes.
@@ -10,7 +11,7 @@ import { UpstreamError } from './errors';
  * honour the operators' request that third-party tools stay light on their
  * infrastructure (see docs/SIMCOMPANIES_API_RESEARCH.md):
  *
- *   - a process-wide minimum interval between requests (serialised queue)
+ *   - a database-backed global minimum interval shared by every application process
  *   - in-flight de-duplication, so N concurrent callers asking for the same path
  *     produce exactly one network request
  *   - bounded retries with exponential backoff and jitter, only for retryable failures
@@ -74,31 +75,6 @@ class CircuitBreaker {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Serialised, paced request queue
-// ---------------------------------------------------------------------------
-
-class RequestPacer {
-  private tail: Promise<unknown> = Promise.resolve();
-  private lastStart = 0;
-
-  /** Runs `fn` such that consecutive runs are at least `minIntervalMs` apart. */
-  schedule<T>(fn: () => Promise<T>, minIntervalMs: number): Promise<T> {
-    const run = this.tail.then(async () => {
-      const wait = this.lastStart + minIntervalMs - Date.now();
-      if (wait > 0) await sleep(wait);
-      this.lastStart = Date.now();
-      return fn();
-    });
-    // Keep the chain alive regardless of individual failures.
-    this.tail = run.then(
-      () => undefined,
-      () => undefined,
-    );
-    return run;
-  }
-}
-
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -128,7 +104,7 @@ export interface FetchOptions {
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 
 export class SimCompaniesHttpClient {
-  private readonly pacer = new RequestPacer();
+  private readonly pacer = new GlobalRequestPacer();
   private readonly inFlight = new Map<string, Promise<unknown>>();
   private readonly breaker = new CircuitBreaker({ failureThreshold: 5, openMs: 60_000 });
   private readonly stats: UpstreamStats = {
@@ -323,7 +299,7 @@ export class SimCompaniesHttpClient {
   }
 }
 
-/** Process-wide singleton — the pacer and breaker are only meaningful when shared. */
+/** Process-wide singleton for request coalescing, statistics and circuit-breaker state. */
 let singleton: SimCompaniesHttpClient | null = null;
 
 export function httpClient(): SimCompaniesHttpClient {
@@ -331,4 +307,4 @@ export function httpClient(): SimCompaniesHttpClient {
   return singleton;
 }
 
-export const __testing = { CircuitBreaker, RequestPacer, sleep };
+export const __testing = { CircuitBreaker, sleep };
