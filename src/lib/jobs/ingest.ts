@@ -4,8 +4,14 @@ import { marketCandles, marketSnapshots } from '@/lib/db/schema';
 import { DEFAULT_REALM_ID, type RealmId } from '@/lib/game/constants';
 import { catalogRepository } from '@/lib/catalog/service';
 import { resourceStubFromTicker } from '@/lib/catalog/ticker';
-import { fetchBuildings, fetchMarketTicker, fetchResourceDetail, fetchResources } from '@/lib/upstream/api';
-import { buildTickerQuote } from '@/lib/market/quote';
+import {
+  fetchBuildings,
+  fetchMarketOffers,
+  fetchMarketTicker,
+  fetchResourceDetail,
+  fetchResources,
+} from '@/lib/upstream/api';
+import { buildQuote, buildTickerQuote } from '@/lib/market/quote';
 import { persistQuotes } from '@/lib/market/service';
 import { FLAG_KEYS, setFlag } from '@/lib/db/flags';
 import { log } from '@/lib/util/logger';
@@ -115,6 +121,46 @@ export async function snapshotMarket(
       priced: ticker.filter((entry) => entry.price !== null).length,
       soldOut: ticker.filter((entry) => entry.soldOut).length,
       source: 'market-ticker',
+      upstreamRequests: 1,
+      observedAt,
+    },
+  };
+}
+
+/**
+ * Captures one full Exchange order book.
+ *
+ * Unlike the whole-market ticker, this consumes one upstream request for one
+ * product and therefore runs only in coordinator slots not needed by a ticker.
+ */
+export async function snapshotOrderBook(
+  context: JobContext,
+  realmId: RealmId,
+  resourceId: number,
+): Promise<JobResult> {
+  const offers = await fetchMarketOffers(realmId, resourceId);
+  const observedAt = new Date().toISOString();
+
+  const quote = buildQuote(offers, {
+    realmId,
+    resourceId,
+    observedAt,
+  });
+
+  context.progress(1);
+
+  const written = await persistQuotes([quote]);
+  if (written > 0) await clearFixtureFlagIfSet();
+
+  return {
+    itemsProcessed: written,
+    detail: {
+      realmId,
+      resourceId,
+      offers: offers.length,
+      totalQuantity: quote.totalQuantity,
+      qualities: quote.qualitiesAvailable,
+      source: 'order-book',
       upstreamRequests: 1,
       observedAt,
     },
