@@ -237,18 +237,18 @@ export const GUIDES: readonly Guide[] = [
     title: 'Reading the Exchange',
     summary: 'What the numbers on a market page mean, and which of them can mislead you.',
     description:
-      'How to read Sim Companies exchange listings: price by quality, supply, liquidity and volatility, and why the cheapest listing is not always the price you will pay.',
+      'How to read Sim Companies market data: headline prices, measured order-book depth, liquidity, quality and volatility.',
     level: 'Core concepts',
     minutes: 6,
     sections: [
       {
-        heading: 'The price you see is the cheapest listing',
+        heading: 'The headline price is a market signal',
         body: [
-          'When this site shows a product at $12.40, that is the cheapest open sell offer. It is not an average, and it is not necessarily a price you can buy much at.',
-          'If that listing is for 50 units and you need 5,000, you will pay $12.40 for the first 50 and progressively more after that. The headline price is the start of the order book, not the whole of it.',
+          'Ledgerforge broad-market pages use the headline price reported by the Sim Companies market ticker. It is not an average, and the ticker does not identify the quality, quantity or seller behind that price.',
+          'When Ledgerforge has measured a full order book for a product, it can separately show supply, listing count, liquidity and quality-specific prices. Those fields stay unavailable when they have not been measured.',
         ],
         warning:
-          'This is the most common way a profitability estimate goes wrong: costing 10,000 units of input at a price that only covers 200 of them.',
+          'Do not assume the headline ticker price represents enough quantity for a large purchase. Check measured order-book depth before using it for high-volume cost estimates.',
       },
       {
         heading: 'Quality',

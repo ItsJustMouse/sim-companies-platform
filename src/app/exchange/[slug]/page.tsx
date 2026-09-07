@@ -180,15 +180,24 @@ export default async function ProductPage({ params }: PageProps) {
       </header>
 
       {quoteResult.freshness === 'unavailable' ? (
-        <Callout tone="danger" title="No price data">
-          We have no current listings and no recorded observations for {resource.name}. This can mean the Exchange has
-          no open offers, or that our collection has not covered this product yet.
+        <Callout tone="danger" title="No headline market price">
+          The market ticker currently reports no headline price for {resource.name}, or Ledgerforge has not recorded
+          a usable price observation for this product yet.
         </Callout>
       ) : null}
 
       <Card>
         <div className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-3 lg:grid-cols-6 sm:p-5">
-          <Stat label="Price" value={money(quote?.lowestPrice ?? null)} size="lg" hint="Cheapest open offer" />
+          <Stat
+            label="Price"
+            value={money(quote?.lowestPrice ?? null)}
+            size="lg"
+            hint={
+              quote?.source === 'ticker'
+                ? 'Headline market ticker price'
+                : 'Cheapest measured open offer'
+            }
+          />
           <Stat label="24h" value={<Delta percent={change24h?.percent ?? null} />} />
           <Stat label="7d" value={<Delta percent={change7d?.percent ?? null} />} />
           <Stat label="30d" value={<Delta percent={change30d?.percent ?? null} />} />

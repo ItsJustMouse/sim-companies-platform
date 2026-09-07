@@ -174,18 +174,25 @@ export function ExchangeTable({ rows, qualities }: { rows: readonly ExchangeRow[
           ))}
         </select>
 
-        <label className="sr-only" htmlFor="exchange-quality">Quality</label>
-        <select
-          id="exchange-quality"
-          value={quality}
-          onChange={(event) => setQuality(Number(event.target.value))}
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
-          title="Prices shown are the cheapest offer at this quality or better"
-        >
-          {qualities.map((q) => (
-            <option key={q} value={q}>{q === 0 ? 'Any quality' : `Quality ${q}+`}</option>
-          ))}
-        </select>
+        {qualities.length > 0 ? (
+          <>
+            <label className="sr-only" htmlFor="exchange-quality">Quality</label>
+            <select
+              id="exchange-quality"
+              value={quality}
+              onChange={(event) => setQuality(Number(event.target.value))}
+              className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
+              title="Filter products when quality-specific order-book prices are available"
+            >
+              <option value={0}>Any quality</option>
+              {qualities
+                .filter((q) => q > 0)
+                .map((q) => (
+                  <option key={q} value={q}>{`Quality ${q}+`}</option>
+                ))}
+            </select>
+          </>
+        ) : null}
 
         <button
           type="button"
@@ -213,13 +220,13 @@ export function ExchangeTable({ rows, qualities }: { rows: readonly ExchangeRow[
 
       <p className="mb-2 text-xs text-[var(--text-muted)]" role="status" aria-live="polite">
         Showing {visible.length} of {rows.length} products
-        {quality > 0 ? ` · prices are the cheapest offer at quality ${quality} or better` : ''}
+        {quality > 0 ? ` · showing products with measured quality ${quality}+ pricing` : ''}
       </p>
 
       <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[var(--border)]">
         <table className="w-full min-w-[820px] border-collapse text-sm">
           <caption className="sr-only">
-            Exchange prices, supply and recent movement for every tracked product. Sortable by column.
+            Headline market prices, recent movement and measured order-book depth for every tracked product. Sortable by column.
           </caption>
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--surface-muted)]">
