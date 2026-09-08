@@ -5,7 +5,7 @@ import { buildMetadata } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'About Ledgerforge',
   description:
-    'Ledgerforge is an independent, unofficial companion for Sim Companies players: market prices, price history, profitability analysis and calculators that show their working.',
+    'Ledgerforge is an independent, unofficial Sim Companies companion for market observations, price history, analytics and transparent planning calculators.',
   path: '/about',
 });
 
@@ -15,8 +15,8 @@ export default function AboutPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">About Ledgerforge</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--text-muted)]">
-          A companion tool for Sim Companies players who want to know what their production actually earns — built by
-          a player, for players, and not affiliated with the game in any way.
+          An independent companion for Sim Companies players who want clearer market information and transparent
+          planning tools — built by a player, for players, and not affiliated with the game in any way.
         </p>
       </div>
 
@@ -24,14 +24,14 @@ export default function AboutPage() {
         <CardHeader title="What it is for" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
-            Working out whether a production line is worth running currently means a spreadsheet, several browser tabs
-            and some arithmetic that is easy to get subtly wrong. Ledgerforge does that arithmetic once, correctly, and
-            shows its working — so you can check it rather than trust it.
+            Sim Companies decisions often involve several prices, assumptions and calculations spread across multiple
+            screens. Ledgerforge brings useful market observations and planning tools together and shows the assumptions
+            behind its calculations so you can check them rather than blindly trust them.
           </p>
           <p>
-            It tracks exchange prices over time, builds the price history the game does not publish, and turns both
-            into answers: what to produce, what it really costs, whether to buy an input or make it, and where your
-            capital earns most.
+            During the public beta, Ledgerforge focuses on recording exchange prices over time, building its own price
+            history, highlighting market movement and providing calculators for selling, investment, break-even and
+            capital-planning decisions.
           </p>
         </div>
       </Card>

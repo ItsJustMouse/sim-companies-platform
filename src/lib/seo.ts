@@ -11,9 +11,9 @@ import { env } from '@/lib/env';
 
 export const SITE = {
   name: 'Ledgerforge',
-  tagline: 'Price the market. Plan the production.',
+  tagline: 'Price the market. Plan your next move.',
   description:
-    'Independent market prices, price history, profitability analysis and calculators for Sim Companies players. See what to produce, what it really costs, and where your capital earns most.',
+    'Independent Sim Companies market observations, price history, market analytics and transparent planning calculators.',
 } as const;
 
 export function siteUrl(path = '/'): string {

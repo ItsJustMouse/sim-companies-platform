@@ -7,7 +7,7 @@ import { breadcrumbs, buildMetadata } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'Sim Companies calculators',
   description:
-    'Production cost, profit per hour, break-even, building ROI, vertical integration, retail margin, quality premium and capital allocation calculators for Sim Companies — each one showing its formula and assumptions.',
+    'Break-even, building ROI, retail, quality, loan and capital allocation calculators for Sim Companies — each one showing its formula and assumptions.',
   path: '/calculators',
 });
 

@@ -77,8 +77,6 @@ export const GUIDES: readonly Guide[] = [
     ],
     related: ['profit', 'opportunity-cost'],
     tools: [
-      { href: '/calculators/production', label: 'Work out what something really earns' },
-      { href: '/opportunities', label: 'See what is worth producing right now' },
     ],
   },
   {
@@ -132,7 +130,6 @@ export const GUIDES: readonly Guide[] = [
     ],
     related: ['getting-started', 'opportunity-cost', 'margins'],
     tools: [
-      { href: '/calculators/production', label: 'Production calculator' },
       { href: '/calculators/break-even', label: 'Find your break-even price' },
     ],
   },
@@ -181,7 +178,6 @@ export const GUIDES: readonly Guide[] = [
     ],
     related: ['profit', 'mistakes'],
     tools: [
-      { href: '/calculators/vertical-integration', label: 'Buy or build, done properly' },
       { href: '/calculators/allocation', label: 'Compare where to put your money' },
     ],
   },
@@ -339,8 +335,6 @@ export const GUIDES: readonly Guide[] = [
     ],
     related: ['opportunity-cost', 'profit', 'exchange'],
     tools: [
-      { href: '/calculators/production', label: 'Check a line properly' },
-      { href: '/opportunities', label: 'Find something better to make' },
     ],
   },
   {

@@ -391,9 +391,7 @@ export default async function ProductPage({ params }: PageProps) {
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-faint)]">Produced in</h3>
                 <p className="mt-1.5 text-sm">
-                  <Link href={`/buildings/${building.slug}`} className="hover:text-[var(--accent)]">
-                    {building.name}
-                  </Link>
+                  {building.name}
                   <span className="ml-2 text-xs text-[var(--text-faint)]">
                     {money(building.wagesPerHourPerLevel)}/hour wages per level
                   </span>
@@ -407,11 +405,6 @@ export default async function ProductPage({ params }: PageProps) {
           <CardHeader
             title="Profitability at current prices"
             description="One building level, no bonuses, sold on the Exchange."
-            action={
-              <Link href="/calculators/production" className="text-xs text-[var(--accent)] hover:underline">
-                Open calculator
-              </Link>
-            }
           />
           {!productionEstimate ? (
             <p className="px-4 py-6 text-sm text-[var(--text-muted)] sm:px-5">

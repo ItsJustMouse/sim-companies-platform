@@ -71,11 +71,8 @@ export default function PrivacyPage() {
             full control of your account, and you should decline.
           </p>
           <p>
-            That is why the{' '}
-            <Link href="/company" className="text-[var(--accent)] underline underline-offset-2">
-              company advisor
-            </Link>{' '}
-            works from data you enter, kept in your browser.
+            Ledgerforge will never require your Sim Companies password or session cookie for company analysis. Any
+            company data you choose to use with Ledgerforge should be entered by you and kept under your control.
           </p>
         </div>
       </Card>

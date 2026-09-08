@@ -48,7 +48,7 @@ export function SiteFooter() {
               <span className="font-semibold tracking-tight">Ledgerforge</span>
             </div>
             <p className="mt-2 max-w-xs text-sm text-[var(--text-muted)]">
-              Price the market. Plan the production.
+              Price the market. Plan your next move.
             </p>
           </div>
 

@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: PageProps) {
     title: `${building.name} — cost, wages and what to produce`,
     description: `Construction cost, hourly wage bill and build time for the Sim Companies ${building.name}, with every product it can make ranked by current profit per hour.`,
     path: `/buildings/${building.slug}`,
+    index: false,
   });
 }
 
