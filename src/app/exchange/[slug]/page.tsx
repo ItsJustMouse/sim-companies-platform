@@ -185,7 +185,7 @@ export default async function ProductPage({ params }: PageProps) {
           />
           {depthQuote ? (
             <FreshnessLine
-              kind="collected"
+              kind={quoteResult.depthFreshness}
               observedAt={quoteResult.depthObservedAt}
               note="Order-book depth"
             />

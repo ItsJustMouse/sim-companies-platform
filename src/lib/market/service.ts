@@ -14,6 +14,19 @@ import { classifyTrend, liquidityScore, priceChange, volatility, type ChangeResu
  * here, so "how old is this number" remains answerable at every level of the UI.
  */
 
+export const ORDER_BOOK_DEPTH_STALE_SECONDS = 96 * 60 * 60;
+
+export type DepthFreshness = 'recorded' | 'stale' | 'unavailable';
+
+export function classifyDepthFreshness(
+  ageSeconds: number | null,
+): DepthFreshness {
+  if (ageSeconds === null) return 'unavailable';
+  return ageSeconds >= ORDER_BOOK_DEPTH_STALE_SECONDS
+    ? 'stale'
+    : 'recorded';
+}
+
 export interface QuoteResult {
   /** Latest headline ticker observation. */
   readonly quote: MarketQuote | null;
@@ -25,6 +38,7 @@ export interface QuoteResult {
   readonly ageSeconds: number | null;
   readonly depthObservedAt: string | null;
   readonly depthAgeSeconds: number | null;
+  readonly depthFreshness: DepthFreshness;
 }
 
 export async function getQuote(realmId: number, resourceId: number): Promise<QuoteResult> {
@@ -44,6 +58,15 @@ export async function getQuote(realmId: number, resourceId: number): Promise<Quo
   const quote = headlineSnapshot ? snapshotToQuote(headlineSnapshot) : null;
   const depthQuote = depthSnapshot ? snapshotToQuote(depthSnapshot) : null;
 
+  const depthAgeSeconds = depthSnapshot
+    ? Math.max(
+        0,
+        Math.round(
+          (Date.now() - depthSnapshot.observedAt.getTime()) / 1000,
+        ),
+      )
+    : null;
+
   return {
     quote,
     depthQuote,
@@ -54,9 +77,8 @@ export async function getQuote(realmId: number, resourceId: number): Promise<Quo
       ? Math.round((Date.now() - headlineSnapshot.observedAt.getTime()) / 1000)
       : null,
     depthObservedAt: depthSnapshot?.observedAt.toISOString() ?? null,
-    depthAgeSeconds: depthSnapshot
-      ? Math.round((Date.now() - depthSnapshot.observedAt.getTime()) / 1000)
-      : null,
+    depthAgeSeconds,
+    depthFreshness: classifyDepthFreshness(depthAgeSeconds),
   };
 }
 
