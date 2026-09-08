@@ -91,9 +91,9 @@ export const CALCULATORS: readonly CalculatorEntry[] = [
   {
     slug: 'allocation',
     title: 'Capital allocation',
-    question: 'Where is my money best deployed?',
+    question: 'How do these investment options compare?',
     description:
-      'Ranks competing uses of the same capital by profit per hour and by return on capital, and states what each alternative gives up.',
+      'Ranks competing options by profit per hour, shows return on capital separately, and states the hourly opportunity cost of choosing each alternative.',
     group: 'Planning',
     related: ['investment', 'vertical-integration'],
     needsMarketData: false,
@@ -107,15 +107,13 @@ export function calculatorBySlug(slug: string): CalculatorEntry | undefined {
 /**
  * Calculators exposed in the v0.1 public beta.
  *
- * Production and vertical-integration require verified building/recipe catalog
- * data that is not available yet. Their implementations remain in the codebase,
- * but they are deliberately excluded from public discovery until that data source
- * is verified.
+ * Only calculators that have passed the browser smoke test and remain useful
+ * without the incomplete building/recipe catalog are exposed here.
  */
-export const BETA_CALCULATORS = CALCULATORS.filter(
-  (entry) =>
-    entry.slug !== 'production' &&
-    entry.slug !== 'vertical-integration',
+const BETA_CALCULATOR_SLUGS = new Set(['investment', 'loan', 'allocation']);
+
+export const BETA_CALCULATORS = CALCULATORS.filter((entry) =>
+  BETA_CALCULATOR_SLUGS.has(entry.slug),
 );
 
 export const CALCULATOR_GROUPS = ['Production', 'Selling', 'Investment', 'Planning'] as const;

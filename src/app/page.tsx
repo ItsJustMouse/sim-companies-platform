@@ -29,7 +29,7 @@ const ENTRY_POINTS = [
   {
     href: '/calculators',
     title: 'Plan with calculators',
-    body: 'Break-even, selling, investment and capital-planning tools with visible assumptions.',
+    body: 'Investment, borrowing and capital-comparison tools with visible assumptions.',
   },
   {
     href: '/learn',

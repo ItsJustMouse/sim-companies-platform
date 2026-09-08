@@ -130,7 +130,6 @@ export const GUIDES: readonly Guide[] = [
     ],
     related: ['getting-started', 'opportunity-cost', 'margins'],
     tools: [
-      { href: '/calculators/break-even', label: 'Find your break-even price' },
     ],
   },
   {

@@ -41,8 +41,8 @@ export function evaluateInvestment(params: InvestmentParams): Explained<Investme
 
   explain
     .input({ label: 'Up-front cost', value: params.cost, unit: '$', source: 'user' })
-    .input({ label: 'Extra profit', value: params.incrementalProfitPerHour, unit: '$/hour', source: 'derived' })
-    .input({ label: 'Lead time', value: leadTimeHours, unit: 'hours', source: 'catalog' })
+    .input({ label: 'Extra profit', value: params.incrementalProfitPerHour, unit: '$/hour', source: 'user' })
+    .input({ label: 'Lead time', value: leadTimeHours, unit: 'hours', source: 'user' })
     .input({ label: 'Horizon', value: horizonHours, unit: 'hours', source: 'user' });
 
   const incrementalProfitPerDay = params.incrementalProfitPerHour * 24;
@@ -152,7 +152,7 @@ export function evaluateLoan(params: LoanParams): Explained<LoanResult> {
 
   if (expected !== null) {
     explain
-      .input({ label: 'Expected profit from borrowed capital', value: expected, unit: '$/hour', source: 'derived' })
+      .input({ label: 'Expected profit from borrowed capital', value: expected, unit: '$/hour', source: 'user' })
       .step({
         label: 'Net benefit over term',
         formula: '(expectedProfitPerHour - interestCostPerHour) x termHours',
@@ -166,7 +166,7 @@ export function evaluateLoan(params: LoanParams): Explained<LoanResult> {
   }
 
   explain.warn(
-    'Projected returns are estimates based on current market prices. Prices move, and a loan does not.',
+    'Expected returns are estimates supplied by the user. The debt cost is fixed by the terms you entered, while actual returns may differ.',
   );
 
   return explain.build<LoanResult>({
@@ -219,10 +219,10 @@ export function compareAllocations(options: readonly AllocationOption[]): Explai
   }));
 
   for (const option of sorted) {
-    explain.input({ label: option.label, value: option.profitPerHour, unit: '$/hour', source: 'derived' });
+    explain.input({ label: option.label, value: option.profitPerHour, unit: '$/hour', source: 'user' });
   }
   explain.step({
-    label: 'Best option',
+    label: 'Highest profit per hour',
     formula: 'max(profitPerHour)',
     result: best.profitPerHour,
     unit: '$/hour',

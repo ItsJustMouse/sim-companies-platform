@@ -51,7 +51,7 @@ export function AllocationCalculator() {
       <Card>
         <CardHeader
           title="What are you choosing between?"
-          description="Add each way you could deploy the same capital, with the profit per hour you expect from it."
+          description="Add the investment options you are comparing, including the capital each requires and its expected profit per hour."
         />
         <div className="space-y-4 p-4 sm:p-5">
           {options.map((option) => (
@@ -119,14 +119,14 @@ export function AllocationCalculator() {
       {calculation.result ? (
         <>
           <Answer
-            label="Best use of this capital"
+            label="Highest profit per hour"
             value={calculation.result.best.label}
             tone="up"
             sub={`${money(calculation.result.best.profitPerHour)}/hour on ${money(calculation.result.best.capitalRequired)}`}
           />
 
           <Card>
-            <CardHeader title="Ranked, with what each alternative costs you" />
+            <CardHeader title="Ranked by profit per hour" description="Return on capital is shown separately so you can see when the most profitable option is not the most capital-efficient." />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">
                 <caption className="sr-only">Capital allocation options ranked by profit per hour</caption>
@@ -162,9 +162,9 @@ export function AllocationCalculator() {
               </table>
             </div>
             <p className="border-t border-[var(--border)] px-4 py-3 text-xs text-[var(--text-faint)]">
-              Return on capital shows which option does most with the least money — useful when capital, not building
-              slots, is your constraint. Opportunity cost is what you give up per hour by choosing that row instead of
-              the best one.
+              Return on capital shows which option earns the most relative to the money required. Opportunity cost
+              compares each row with the highest absolute profit per hour, so use both columns when the options require
+              different amounts of capital.
             </p>
           </Card>
 

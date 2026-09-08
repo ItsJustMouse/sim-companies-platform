@@ -30,10 +30,7 @@ interface IndexEntry {
 /** Static destinations. Products are added from the verified catalog at query time. */
 const STATIC_ENTRIES: IndexEntry[] = [
   { kind: 'tool', title: 'Building ROI', href: '/calculators/investment', subtitle: 'Payback period and return on a build or upgrade', keywords: ['roi', 'payback', 'upgrade', 'construction', 'investment'] },
-  { kind: 'tool', title: 'Break-even calculator', href: '/calculators/break-even', subtitle: 'Maximum input price and minimum sale price', keywords: ['break even', 'breakeven', 'minimum price', 'maximum price'] },
   { kind: 'tool', title: 'Loan and bond calculator', href: '/calculators/loan', subtitle: 'Cost of borrowing versus expected return', keywords: ['debt', 'bond', 'interest', 'borrow', 'loan'] },
-  { kind: 'tool', title: 'Retail calculator', href: '/calculators/retail', subtitle: 'Retail margin, throughput and profit per hour', keywords: ['retail', 'store', 'shop', 'sell'] },
-  { kind: 'tool', title: 'Quality calculator', href: '/calculators/quality', subtitle: 'Is higher quality worth the extra cost', keywords: ['quality', 'premium', 'q1', 'q2'] },
   { kind: 'tool', title: 'Capital allocation', href: '/calculators/allocation', subtitle: 'Compare where to put your money', keywords: ['allocation', 'compare', 'opportunity cost', 'capital'] },
   { kind: 'tool', title: 'Exchange', href: '/exchange', subtitle: 'Live prices, supply and movement for every product', keywords: ['prices', 'market', 'exchange', 'listings'] },
   { kind: 'guide', title: 'Beginner centre', href: '/learn', subtitle: 'Start here if the game is new to you', keywords: ['beginner', 'start', 'new', 'tutorial', 'how to play'] },

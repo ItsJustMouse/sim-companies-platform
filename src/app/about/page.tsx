@@ -30,8 +30,8 @@ export default function AboutPage() {
           </p>
           <p>
             During the public beta, Ledgerforge focuses on recording exchange prices over time, building its own price
-            history, highlighting market movement and providing calculators for selling, investment, break-even and
-            capital-planning decisions.
+            history, highlighting market movement and providing transparent calculators for investment, borrowing
+            and capital-comparison decisions.
           </p>
         </div>
       </Card>

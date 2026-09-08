@@ -9,6 +9,7 @@ export const metadata = buildMetadata({
   title: 'Break-even calculator — Sim Companies',
   description: 'The lowest price you can sell at and the most you can pay for each input before a Sim Companies production line stops making money.',
   path: '/calculators/break-even',
+  index: false,
 });
 
 export default async function Page() {
