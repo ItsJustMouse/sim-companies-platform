@@ -32,7 +32,7 @@ function minutesSince(iso: string | null): number | null {
  */
 export default async function StatusPage() {
   const health = await collectHealth();
-  const ageMinutes = minutesSince(health.collection.latestSnapshotAt);
+  const ageMinutes = minutesSince(health.collection.latestTickerAt);
 
   const state =
     health.fixtureData
@@ -68,12 +68,33 @@ export default async function StatusPage() {
         <CardHeader title="Coverage" />
         <div className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-4 sm:p-5">
           <Stat label="Products tracked" value={number(health.collection.resourceCount)} />
-          <Stat label="Last updated" value={relativeTime(health.collection.latestSnapshotAt)} />
+          <Stat label="Headline updated" value={relativeTime(health.collection.latestTickerAt)} />
           <Stat
-            label="History since"
-            value={health.collection.oldestSnapshotAt ? health.collection.oldestSnapshotAt.slice(0, 10) : '—'}
+            label="Headline history since"
+            value={health.collection.oldestTickerAt ? health.collection.oldestTickerAt.slice(0, 10) : '—'}
           />
-          <Stat label="Observations held" value={compactNumber(health.collection.snapshotCount)} />
+          <Stat label="Headline observations" value={compactNumber(health.collection.tickerSnapshotCount)} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Order-book depth"
+          description="Supply, listing counts and quality prices are collected separately from headline prices."
+        />
+        <div className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-4 sm:p-5">
+          <Stat
+            label="Fresh depth coverage"
+            value={`${number(health.collection.freshDepthProducts)} / ${number(health.collection.resourceCount)}`}
+          />
+          <Stat label="Latest depth check" value={relativeTime(health.collection.latestOrderBookAt)} />
+          <Stat label="Depth observations" value={compactNumber(health.collection.orderBookSnapshotCount)} />
+          <Stat label="Freshness window" value="96h" />
+        </div>
+        <div className="border-t border-[var(--border)] p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
+          Order-book checks rotate through products more slowly because each one requires its own upstream request.
+          Depth is considered fresh for 96 hours; individual product pages show the timestamp of the depth observation
+          they are using.
         </div>
       </Card>
 
@@ -81,19 +102,19 @@ export default async function StatusPage() {
         <CardHeader title="Where the data comes from" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
-            Prices are read from the Sim Companies API by a single background collector and cached for the whole site.
-            However many people are looking at a product, the game&rsquo;s servers see at most one request for it per
-            collection cycle — the API is undocumented and unsupported, and its operators ask third-party tools not to
-            poll aggressively.
+            Headline prices are read from the whole-market Sim Companies ticker by a single background collector and
+            cached for the whole site. Deeper order-book data requires separate product-specific checks and is rotated
+            more slowly. All upstream requests share the same global pacing because the API is undocumented and
+            unsupported, and its operators ask third-party tools not to poll aggressively.
           </p>
           <p>
             That is why nothing here is instantaneous. &ldquo;Real time&rdquo; on this site means as current as the
             source legitimately allows, and every price carries the time it was observed.
           </p>
           <p>
-            <strong className="text-[var(--text)]">Price history is ours.</strong> The game publishes only the current
-            order book, so every chart is built from snapshots we recorded. Series begin when our collection did — we
-            do not have, and will not fabricate, history from before then.
+            <strong className="text-[var(--text)]">Price history is ours.</strong> The game provides current market
+            observations, not Ledgerforge&rsquo;s historical series, so every chart is built from snapshots we recorded.
+            Series begin when our collection did — we do not have, and will not fabricate, history from before then.
           </p>
           <p>
             The methodology behind every calculated figure is documented on{' '}
@@ -105,10 +126,10 @@ export default async function StatusPage() {
         </div>
       </Card>
 
-      {health.collection.staleProducts > 0 ? (
+      {health.collection.staleTickerProducts > 0 ? (
         <Callout tone="warn">
-          {health.collection.staleProducts} products have no observation in the last 24 hours. That usually means the
-          Exchange has no open offers for them rather than a collection failure, but their prices will show as older.
+          {health.collection.staleTickerProducts} products have no headline ticker observation in the last 24 hours.
+          Their displayed headline prices may therefore be missing or stale.
         </Callout>
       ) : null}
     </div>

@@ -27,6 +27,15 @@ export interface HealthReport {
     oldestSnapshotAt: string | null;
     /** Products with a catalog entry but no snapshot in the last day. */
     staleProducts: number;
+
+    /** Source-aware public status metrics for the default realm. */
+    tickerSnapshotCount: number;
+    orderBookSnapshotCount: number;
+    latestTickerAt: string | null;
+    oldestTickerAt: string | null;
+    latestOrderBookAt: string | null;
+    staleTickerProducts: number;
+    freshDepthProducts: number;
   };
   jobs: {
     job: string;
@@ -64,7 +73,41 @@ export async function collectHealth(): Promise<HealthReport> {
                  WHERE s.resource_id = r.resource_id
                    AND s.realm_id = r.realm_id
                    AND s.observed_at > now() - interval '1 day'
-               ))                                                               AS stale_products
+               ))                                                               AS stale_products,
+
+          (SELECT count(*) FROM market_snapshots
+             WHERE realm_id = ${DEFAULT_REALM_ID}
+               AND source = 'ticker')                                           AS ticker_snapshot_count,
+          (SELECT count(*) FROM market_snapshots
+             WHERE realm_id = ${DEFAULT_REALM_ID}
+               AND source = 'order-book')                                       AS order_book_snapshot_count,
+          (SELECT max(observed_at) FROM market_snapshots
+             WHERE realm_id = ${DEFAULT_REALM_ID}
+               AND source = 'ticker')                                           AS latest_ticker_at,
+          (SELECT min(observed_at) FROM market_snapshots
+             WHERE realm_id = ${DEFAULT_REALM_ID}
+               AND source = 'ticker')                                           AS oldest_ticker_at,
+          (SELECT max(observed_at) FROM market_snapshots
+             WHERE realm_id = ${DEFAULT_REALM_ID}
+               AND source = 'order-book')                                       AS latest_order_book_at,
+          (SELECT count(*) FROM resources r
+             WHERE r.realm_id = ${DEFAULT_REALM_ID}
+               AND NOT EXISTS (
+                 SELECT 1 FROM market_snapshots s
+                 WHERE s.resource_id = r.resource_id
+                   AND s.realm_id = r.realm_id
+                   AND s.source = 'ticker'
+                   AND s.observed_at > now() - interval '1 day'
+               ))                                                               AS stale_ticker_products,
+          (SELECT count(*) FROM resources r
+             WHERE r.realm_id = ${DEFAULT_REALM_ID}
+               AND EXISTS (
+                 SELECT 1 FROM market_snapshots s
+                 WHERE s.resource_id = r.resource_id
+                   AND s.realm_id = r.realm_id
+                   AND s.source = 'order-book'
+                   AND s.observed_at > now() - interval '96 hours'
+               ))                                                               AS fresh_depth_products
       `)) as unknown as Record<string, unknown>[];
       const counts = rows[0];
 
@@ -75,6 +118,13 @@ export async function collectHealth(): Promise<HealthReport> {
         latestSnapshotAt: toIso(counts?.['latest_at']),
         oldestSnapshotAt: toIso(counts?.['oldest_at']),
         staleProducts: Number(counts?.['stale_products'] ?? 0),
+        tickerSnapshotCount: Number(counts?.['ticker_snapshot_count'] ?? 0),
+        orderBookSnapshotCount: Number(counts?.['order_book_snapshot_count'] ?? 0),
+        latestTickerAt: toIso(counts?.['latest_ticker_at']),
+        oldestTickerAt: toIso(counts?.['oldest_ticker_at']),
+        latestOrderBookAt: toIso(counts?.['latest_order_book_at']),
+        staleTickerProducts: Number(counts?.['stale_ticker_products'] ?? 0),
+        freshDepthProducts: Number(counts?.['fresh_depth_products'] ?? 0),
       };
     },
     {
@@ -84,6 +134,13 @@ export async function collectHealth(): Promise<HealthReport> {
       latestSnapshotAt: null,
       oldestSnapshotAt: null,
       staleProducts: 0,
+      tickerSnapshotCount: 0,
+      orderBookSnapshotCount: 0,
+      latestTickerAt: null,
+      oldestTickerAt: null,
+      latestOrderBookAt: null,
+      staleTickerProducts: 0,
+      freshDepthProducts: 0,
     },
     'admin:collection',
   );

@@ -7,6 +7,8 @@ import { toCsv } from '@/lib/util/csv';
 
 export const dynamic = 'force-dynamic';
 
+const PUBLIC_BETA_OPPORTUNITIES_ENABLED: boolean = false;
+
 /**
  * Data export.
  *
@@ -50,6 +52,13 @@ export async function GET(request: Request) {
   }
 
   if (dataset === 'opportunities') {
+    if (!PUBLIC_BETA_OPPORTUNITIES_ENABLED) {
+      return NextResponse.json(
+        { error: 'This dataset is not available in the v0.1 Public Beta.' },
+        { status: 404 },
+      );
+    }
+
     const scan = await scanOpportunities(realmId);
     const rows = sortOpportunities(scan.opportunities, 'profitPerHour').map((o) => ({
       product: o.resource.name,
