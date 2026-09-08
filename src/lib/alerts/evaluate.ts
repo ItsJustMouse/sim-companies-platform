@@ -157,12 +157,17 @@ async function evaluateOne(
     case 'pct_change_up':
     case 'pct_change_down': {
       const windowHours = alert.windowHours ?? 24;
-      const from = new Date(Date.now() - windowHours * 2 * 3_600_000);
+      const historyTo = snapshot.observedAt;
+      const from = new Date(
+        historyTo.getTime() - windowHours * 2 * 3_600_000,
+      );
+
       const history = await marketRepository.readHistory({
         realmId: alert.realmId,
         resourceId: alert.resourceId,
         quality: alert.quality,
         from,
+        to: historyTo,
         interval: 'raw',
       });
 
