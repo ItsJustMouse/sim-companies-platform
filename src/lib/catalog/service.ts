@@ -22,10 +22,10 @@ export interface CatalogResult<T> {
 /**
  * Reads below are wrapped in React's `cache()`, which memoises per request.
  *
- * A single page can ask for the resource catalog from four different components;
- * without this, each one repeats the cache lookup and the database fallback. The
- * cross-request cache is a separate concern handled by `swr` — this only removes
- * duplicate work inside one render.
+ * A single page can ask for the resource catalog from multiple components;
+ * without this, each one would repeat the same database read. This only removes
+ * duplicate work inside one render; persistent market and catalog data lives in
+ * PostgreSQL and is refreshed by background ingestion.
  */
 export const getResources = requestCache(async function getResources(
   realmId: number,
