@@ -5,7 +5,7 @@ import { buildConsumerIndex, findResource, getBuildings, getRecipe, getResourceI
 import { getHistory, getQuote, getMarketOverview } from '@/lib/market/service';
 import { calculateProduction } from '@/lib/calc/production';
 import { Card, CardHeader, Callout, Delta, Stat, Badge } from '@/components/ui/primitives';
-import { FreshnessLine } from '@/components/ui/freshness';
+import { DataAge, FreshnessLine } from '@/components/ui/freshness';
 import { ChartPanel } from '@/components/product/chart-panel';
 import { ExportLinks } from '@/components/ui/export-links';
 import { ExplanationPanel } from '@/components/ui/explanation';
@@ -177,7 +177,25 @@ export default async function ProductPage({ params }: PageProps) {
             {resource.retailable ? <Badge tone="accent">Retailable</Badge> : null}
           </div>
         </div>
-        <FreshnessLine kind={quoteResult.freshness} observedAt={quoteResult.observedAt} />
+        <div className="space-y-1.5">
+          <FreshnessLine
+            kind={quoteResult.freshness}
+            observedAt={quoteResult.observedAt}
+            note="Headline ticker"
+          />
+          {depthQuote ? (
+            <FreshnessLine
+              kind="collected"
+              observedAt={quoteResult.depthObservedAt}
+              note="Order-book depth"
+            />
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+              <Badge>Depth not measured</Badge>
+              <span className="text-[var(--text-faint)]">· Order-book depth</span>
+            </div>
+          )}
+        </div>
       </header>
 
       {quoteResult.freshness === 'unavailable' ? (
@@ -206,9 +224,17 @@ export default async function ProductPage({ params }: PageProps) {
             label="Supply"
             value={compactNumber(depthQuote?.totalQuantity ?? null)}
             hint={
-              depthQuote?.offerCount == null
-                ? 'Order-book depth not measured'
-                : `${depthQuote.offerCount} listings`
+              depthQuote?.offerCount == null ? (
+                'Order-book depth not measured'
+              ) : (
+                <span>
+                  {depthQuote.offerCount} listings ·{' '}
+                  <DataAge
+                    observedAt={quoteResult.depthObservedAt}
+                    prefix="Measured"
+                  />
+                </span>
+              )
             }
           />
           <Stat
@@ -239,7 +265,19 @@ export default async function ProductPage({ params }: PageProps) {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <CardHeader title="Price by quality" description="Cheapest offer at each quality or better." />
+          <CardHeader
+            title="Price by quality"
+            description="Cheapest offer at each quality or better."
+            action={
+              depthQuote ? (
+                <DataAge
+                  observedAt={quoteResult.depthObservedAt}
+                  prefix="Measured"
+                  className="text-xs text-[var(--text-muted)]"
+                />
+              ) : undefined
+            }
+          />
           {qualityRows.length === 0 ? (
             <p className="px-4 py-6 text-sm text-[var(--text-muted)]">
               {depthQuote?.offerCount === 0
