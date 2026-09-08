@@ -1,14 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DEFAULT_REALM_ID } from '@/lib/game/constants';
-import { buildConsumerIndex, findResource, getBuildings, getRecipe, getResourceIndex } from '@/lib/catalog/service';
+import { findResource } from '@/lib/catalog/service';
 import { getHistory, getQuote, getMarketOverview } from '@/lib/market/service';
-import { calculateProduction } from '@/lib/calc/production';
 import { Card, CardHeader, Callout, Delta, Stat, Badge } from '@/components/ui/primitives';
 import { DataAge, FreshnessLine } from '@/components/ui/freshness';
 import { ChartPanel } from '@/components/product/chart-panel';
 import { ExportLinks } from '@/components/ui/export-links';
-import { ExplanationPanel } from '@/components/ui/explanation';
 import { JsonLd } from '@/components/ui/json-ld';
 import { breadcrumbs, buildMetadata, siteUrl } from '@/lib/seo';
 import { compactNumber, money, number, ratioAsPercent } from '@/lib/util/format';
@@ -21,9 +19,9 @@ export const dynamicParams = true;
  * Product detail page.
  *
  * This is the page most search traffic will land on, so it has to be genuinely
- * useful rather than a price with padding around it: current price at every quality,
- * the collected history, what the product is made from, what it feeds into, and a
- * worked profitability estimate with its assumptions on display.
+ * useful rather than a price with padding around it: current price, recorded
+ * history, market range, quality/depth information and clear data-freshness
+ * context.
  */
 
 interface PageProps {
@@ -50,8 +48,8 @@ export async function generateMetadata({ params }: PageProps) {
   }
 
   return buildMetadata({
-    title: `${resource.name} price and production analysis`,
-    description: `Current Sim Companies exchange price for ${resource.name}, with price history, supply, quality pricing, production inputs and a worked profitability estimate showing every assumption.`,
+    title: `${resource.name} price and market history`,
+    description: `Current Sim Companies exchange price for ${resource.name}, with Ledgerforge-collected price history, market range, quality pricing and data freshness.`,
     path: `/exchange/${resource.slug}`,
   });
 }
@@ -63,16 +61,11 @@ export default async function ProductPage({ params }: PageProps) {
   const resource = await findResource(realmId, slug);
   if (!resource) notFound();
 
-  const [quoteResult, history, recipe, { data: buildings }, resourceIndex, consumerIndex, overview] =
-    await Promise.all([
-      getQuote(realmId, resource.id),
-      getHistory({ realmId, resourceId: resource.id, rangeHours: 24 * 30 }),
-      getRecipe(realmId, resource.id),
-      getBuildings(realmId),
-      getResourceIndex(realmId),
-      buildConsumerIndex(realmId),
-      getMarketOverview(realmId),
-    ]);
+  const [quoteResult, history, overview] = await Promise.all([
+    getQuote(realmId, resource.id),
+    getHistory({ realmId, resourceId: resource.id, rangeHours: 24 * 30 }),
+    getMarketOverview(realmId),
+  ]);
 
   const quote = quoteResult.quote;
   const depthQuote = quoteResult.depthQuote;
@@ -82,44 +75,6 @@ export default async function ProductPage({ params }: PageProps) {
   const change7d = priceChange(series, 24 * 7);
   const change30d = priceChange(series, 24 * 30);
   const vol = volatility(series.slice(-168));
-
-  // --- Worked profitability estimate -------------------------------------
-  const building =
-    buildings.find((b) => (recipe?.producedIn ?? []).includes(b.kind)) ??
-    buildings.find((b) => b.production.some((line) => line.resourceId === resource.id)) ??
-    null;
-
-  const rowByResource = new Map(overview.rows.map((row) => [row.resource.id, row]));
-
-  const productionEstimate =
-    building?.wagesPerHourPerLevel != null && resource.baseUnitsPerHour != null && quote?.lowestPrice != null
-      ? calculateProduction({
-          outputName: resource.name,
-          baseUnitsPerHour: resource.baseUnitsPerHour,
-          buildingLevel: 1,
-          wagesPerHourPerLevel: building.wagesPerHourPerLevel,
-          inputs: (recipe?.inputs ?? []).map((input) => {
-            const inputRow = rowByResource.get(input.resourceId);
-            return {
-              resourceId: input.resourceId,
-              resourceName: input.resourceName ?? resourceIndex.get(input.resourceId)?.name ?? `#${input.resourceId}`,
-              amountPerUnit: input.amount,
-              unitPrice: inputRow?.quote?.lowestPrice ?? null,
-              priceObservedAt: inputRow?.observedAt ?? null,
-              priceSource: 'market' as const,
-            };
-          }),
-          salePrice: quote.lowestPrice,
-          salePriceObservedAt: quote.observedAt,
-          saleChannel: 'exchange',
-          transportUnitsPerUnit: resource.transportUnits,
-          transportUnitCost: 0,
-        })
-      : null;
-
-  const usedBy = (consumerIndex.get(resource.id) ?? [])
-    .map((id) => resourceIndex.get(id))
-    .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
   const related = overview.rows
     .filter((row) => row.resource.category === resource.category && row.resource.id !== resource.id)
@@ -145,7 +100,7 @@ export default async function ProductPage({ params }: PageProps) {
           name: resource.name,
           category: resource.category ?? undefined,
           url: siteUrl(`/exchange/${resource.slug}`),
-          description: `Sim Companies in-game commodity. Exchange price history and production analysis on Ledgerforge.`,
+          description: `Sim Companies in-game commodity with Ledgerforge-collected exchange price history and market analysis.`,
         }}
       />
 
@@ -330,110 +285,7 @@ export default async function ProductPage({ params }: PageProps) {
         </Card>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader title="Production chain" description="What this is made from, and what it feeds." />
-          <div className="space-y-4 p-4 sm:p-5">
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-faint)]">Made from</h3>
-              {(recipe?.inputs ?? []).length === 0 ? (
-                <p className="mt-1.5 text-sm text-[var(--text-muted)]">
-                  Nothing — this is a raw or extracted product, so its cost is wages only.
-                </p>
-              ) : (
-                <ul className="mt-1.5 space-y-1">
-                  {(recipe?.inputs ?? []).map((input) => {
-                    const inputResource = resourceIndex.get(input.resourceId);
-                    const inputRow = rowByResource.get(input.resourceId);
-                    return (
-                      <li key={input.resourceId} className="flex items-center justify-between gap-3 text-sm">
-                        <span>
-                          {inputResource ? (
-                            <Link href={`/exchange/${inputResource.slug}`} className="hover:text-[var(--accent)]">
-                              {inputResource.name}
-                            </Link>
-                          ) : (
-                            (input.resourceName ?? `#${input.resourceId}`)
-                          )}
-                          <span className="ml-1.5 text-xs text-[var(--text-faint)]">x {input.amount}</span>
-                        </span>
-                        <span className="tnum text-[var(--text-muted)]">{money(inputRow?.quote?.lowestPrice ?? null)}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
 
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-faint)]">Used to make</h3>
-              {usedBy.length === 0 ? (
-                <p className="mt-1.5 text-sm text-[var(--text-muted)]">
-                  Nothing in our catalog — this is a finished product.
-                </p>
-              ) : (
-                <ul className="mt-1.5 flex flex-wrap gap-1.5">
-                  {usedBy.map((consumer) => (
-                    <li key={consumer.id}>
-                      <Link
-                        href={`/exchange/${consumer.slug}`}
-                        className="rounded border border-[var(--border)] px-1.5 py-0.5 text-xs hover:border-[var(--border-strong)]"
-                      >
-                        {consumer.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {building ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-faint)]">Produced in</h3>
-                <p className="mt-1.5 text-sm">
-                  {building.name}
-                  <span className="ml-2 text-xs text-[var(--text-faint)]">
-                    {money(building.wagesPerHourPerLevel)}/hour wages per level
-                  </span>
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Profitability at current prices"
-            description="One building level, no bonuses, sold on the Exchange."
-          />
-          {!productionEstimate ? (
-            <p className="px-4 py-6 text-sm text-[var(--text-muted)] sm:px-5">
-              We cannot estimate profitability for {resource.name}: we are missing
-              {building?.wagesPerHourPerLevel == null ? ' the producing building’s wage rate' : ''}
-              {resource.baseUnitsPerHour == null ? ' its base production rate' : ''}
-              {quote?.lowestPrice == null ? ' a current market price' : ''}.
-            </p>
-          ) : (
-            <div className="space-y-4 p-4 sm:p-5">
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Stat label="Cost/unit" value={money(productionEstimate.result.totalCostPerUnit)} />
-                <Stat
-                  label="Profit/unit"
-                  value={money(productionEstimate.result.profitPerUnit)}
-                  tone={(productionEstimate.result.profitPerUnit ?? 0) >= 0 ? 'up' : 'down'}
-                />
-                <Stat
-                  label="Profit/hour"
-                  value={money(productionEstimate.result.profitPerHour)}
-                  tone={(productionEstimate.result.profitPerHour ?? 0) >= 0 ? 'up' : 'down'}
-                />
-                <Stat label="Break-even" value={money(productionEstimate.result.breakEvenSalePrice)} hint="Sale price" />
-              </div>
-              <ExplanationPanel explanation={productionEstimate} />
-            </div>
-          )}
-        </Card>
-      </div>
 
       {related.length > 0 ? (
         <Card>
