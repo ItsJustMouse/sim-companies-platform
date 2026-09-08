@@ -3,6 +3,11 @@ import { db } from '@/lib/db/client';
 import { env } from '@/lib/env';
 import { REALMS, type RealmId } from '@/lib/game/constants';
 import { log } from '@/lib/util/logger';
+import {
+  FLAG_KEYS,
+  getCollectorScheduleFlag,
+  setFlag,
+} from '@/lib/db/flags';
 import { snapshotMarket, snapshotOrderBook } from './ingest';
 import type { JobContext, JobResult } from './runner';
 
@@ -26,6 +31,8 @@ export type CollectionPlan =
       readonly resourceName: string;
       readonly lastDeepAt: string | null;
       readonly reason: 'quality-alert' | 'oldest-deep';
+      readonly hasQualityAlert: boolean;
+      readonly normalDeepSlotsSinceAlertBefore: number;
     }
   | {
       readonly kind: 'idle';
@@ -38,6 +45,31 @@ export type CollectionPlan =
  * Never-collected realms come first. Otherwise the oldest ticker wins.
  * Returning null means every realm is still inside its target freshness window.
  */
+const NORMAL_DEEP_SLOTS_PER_ALERT_PRIORITY = 3;
+
+/**
+ * Quality-alert products receive a bounded priority slot after three ordinary
+ * deep collections. This prevents alerts from monopolising scarce order-book
+ * request capacity while still refreshing them more frequently.
+ */
+export function shouldPreferQualityAlert(
+  normalDeepSlotsSinceAlert: number,
+): boolean {
+  return normalDeepSlotsSinceAlert >= NORMAL_DEEP_SLOTS_PER_ALERT_PRIORITY;
+}
+
+export function nextNormalDeepSlotsSinceAlert(
+  previous: number,
+  targetHadQualityAlert: boolean,
+): number {
+  if (targetHadQualityAlert) return 0;
+
+  return Math.min(
+    NORMAL_DEEP_SLOTS_PER_ALERT_PRIORITY,
+    Math.max(0, previous) + 1,
+  );
+}
+
 export function chooseMostOverdueTickerRealm(
   states: readonly RealmTickerState[],
   nowMs: number,
@@ -95,7 +127,9 @@ async function readTickerStates(): Promise<RealmTickerState[]> {
   }));
 }
 
-async function readDeepTarget(): Promise<{
+async function readDeepTarget(
+  preferQualityAlert: boolean,
+): Promise<{
   realmId: RealmId;
   resourceId: number;
   resourceName: string;
@@ -103,10 +137,11 @@ async function readDeepTarget(): Promise<{
   hasQualityAlert: boolean;
 } | null> {
   /*
-   * Priority:
-   *   1. products backing enabled quality-specific alerts;
-   *   2. products never measured deeply;
-   *   3. the stalest existing deep observation.
+   * Ordinary slots always choose the oldest / never-measured product.
+   *
+   * After three ordinary deep slots, preferQualityAlert becomes true and enabled
+   * Q1+ alert products receive one bounded priority opportunity. If no such alert
+   * exists, oldest-first collection simply continues.
    *
    * resource_id before realm_id causes never-measured products that exist in
    * both economies to naturally alternate realms instead of exhausting one
@@ -135,7 +170,10 @@ async function readDeepTarget(): Promise<{
         AND ms.source = 'order-book'
     ) deep ON true
     ORDER BY
-      has_quality_alert DESC,
+      CASE
+        WHEN ${preferQualityAlert}::boolean THEN has_quality_alert
+        ELSE false
+      END DESC,
       deep.last_deep_at ASC NULLS FIRST,
       r.resource_id ASC,
       r.realm_id ASC
@@ -214,7 +252,12 @@ export async function planNextCollection(
     };
   }
 
-  const target = await readDeepTarget();
+  const scheduleState = await getCollectorScheduleFlag();
+  const preferQualityAlert = shouldPreferQualityAlert(
+    scheduleState.normalDeepSlotsSinceAlert,
+  );
+
+  const target = await readDeepTarget(preferQualityAlert);
 
   if (!target) {
     return {
@@ -229,7 +272,13 @@ export async function planNextCollection(
     resourceId: target.resourceId,
     resourceName: target.resourceName,
     lastDeepAt: toIso(target.lastDeepAt),
-    reason: target.hasQualityAlert ? 'quality-alert' : 'oldest-deep',
+    reason:
+      preferQualityAlert && target.hasQualityAlert
+        ? 'quality-alert'
+        : 'oldest-deep',
+    hasQualityAlert: target.hasQualityAlert,
+    normalDeepSlotsSinceAlertBefore:
+      scheduleState.normalDeepSlotsSinceAlert,
   };
 }
 
@@ -279,6 +328,17 @@ export async function collectNextUpstream(
     plan.resourceId,
   );
 
+  const nextScheduleCount = nextNormalDeepSlotsSinceAlert(
+    plan.normalDeepSlotsSinceAlertBefore,
+    plan.hasQualityAlert,
+  );
+
+  await setFlag(
+    FLAG_KEYS.collectorSchedule,
+    { normalDeepSlotsSinceAlert: nextScheduleCount },
+    'upstream-collector',
+  );
+
   return {
     ...result,
     detail: {
@@ -289,6 +349,10 @@ export async function collectNextUpstream(
       resourceId: plan.resourceId,
       resourceName: plan.resourceName,
       previousDeepObservedAt: plan.lastDeepAt,
+      hasQualityAlert: plan.hasQualityAlert,
+      normalDeepSlotsSinceAlertBefore:
+        plan.normalDeepSlotsSinceAlertBefore,
+      normalDeepSlotsSinceAlertAfter: nextScheduleCount,
     },
   };
 }
