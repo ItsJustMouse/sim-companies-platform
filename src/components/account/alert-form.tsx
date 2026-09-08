@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { createAlert, type AlertActionState } from '@/lib/alerts/actions';
+import { QUALITY_ALERT_MAX_SNAPSHOT_AGE_SECONDS } from '@/lib/alerts/freshness';
 import { Callout } from '@/components/ui/primitives';
 
 const INITIAL: AlertActionState = { ok: false, message: '' };
@@ -22,8 +23,10 @@ export function AlertForm({ products, hasEmail }: { products: readonly Product[]
   const [state, action, pending] = useActionState(createAlert, INITIAL);
   const [condition, setCondition] = useState<(typeof CONDITIONS)[number]['value']>('price_below');
   const [channel, setChannel] = useState('none');
+  const [quality, setQuality] = useState(0);
 
   const selected = CONDITIONS.find((c) => c.value === condition) ?? CONDITIONS[0];
+  const qualityAlertMaxAgeHours = QUALITY_ALERT_MAX_SNAPSHOT_AGE_SECONDS / 3600;
 
   return (
     <form action={action} className="space-y-4">
@@ -47,7 +50,8 @@ export function AlertForm({ products, hasEmail }: { products: readonly Product[]
           <span className="block text-xs font-medium text-[var(--text-muted)]">Quality</span>
           <select
             name="quality"
-            defaultValue="0"
+            value={quality}
+            onChange={(event) => setQuality(Number(event.target.value))}
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
           >
             {Array.from({ length: 13 }, (_, q) => (
@@ -166,8 +170,9 @@ export function AlertForm({ products, hasEmail }: { products: readonly Product[]
       {state.message ? <Callout tone={state.ok ? 'info' : 'danger'}>{state.message}</Callout> : null}
 
       <p className="text-xs leading-relaxed text-[var(--text-faint)]">
-        Alerts are checked against the price snapshots we collect, so they fire as quickly as our collection runs — a
-        few minutes, not instantly. We would rather tell you that than imply a precision we do not have.
+        {quality === 0
+          ? 'Headline alerts use Ledgerforge’s broad market ticker snapshots. They are checked against collected data rather than polling the game when an alert is evaluated.'
+          : `Quality-specific alerts use selectively collected order-book snapshots. They will not fire from order-book data that is ${qualityAlertMaxAgeHours} hours old or older, so an alert may wait for fresh depth data before it can trigger.`}
       </p>
     </form>
   );

@@ -61,7 +61,7 @@ export default async function AlertsPage() {
       <Card>
         <CardHeader title={`Your alerts (${alerts.length})`} />
         {alerts.length === 0 ? (
-          <EmptyState title="No alerts yet" description="Create one above and it will be checked on every collection run." />
+          <EmptyState title="No alerts yet" description="Create one above and it will be checked automatically against the market observations Ledgerforge has collected." />
         ) : (
           <ul className="divide-y divide-[var(--border)]">
             {alerts.map((alert) => (
