@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CALCULATORS, CALCULATOR_GROUPS } from '@/lib/calculators/catalog';
+import { BETA_CALCULATORS, CALCULATOR_GROUPS } from '@/lib/calculators/catalog';
 import { Card, SectionHeading } from '@/components/ui/primitives';
 import { JsonLd } from '@/components/ui/json-ld';
 import { breadcrumbs, buildMetadata } from '@/lib/seo';
@@ -27,7 +27,7 @@ export default function CalculatorsPage() {
       />
 
       {CALCULATOR_GROUPS.map((group) => {
-        const entries = CALCULATORS.filter((entry) => entry.group === group);
+        const entries = BETA_CALCULATORS.filter((entry) => entry.group === group);
         if (entries.length === 0) return null;
 
         return (

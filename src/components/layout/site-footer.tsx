@@ -7,15 +7,12 @@ const COLUMNS = [
       { href: '/exchange', label: 'Exchange' },
       { href: '/market', label: 'Market overview' },
       { href: '/market/movers', label: 'Gainers and losers' },
-      { href: '/opportunities', label: 'Opportunity scanner' },
     ],
   },
   {
     title: 'Tools',
     links: [
       { href: '/calculators', label: 'All calculators' },
-      { href: '/calculators/production', label: 'Production calculator' },
-      { href: '/calculators/vertical-integration', label: 'Buy or build inputs' },
       { href: '/calculators/investment', label: 'Building ROI' },
     ],
   },

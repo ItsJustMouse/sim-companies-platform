@@ -16,6 +16,15 @@ export async function GlobalBanners() {
 
   return (
     <>
+      <div className="border-b border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-center text-sm text-[var(--text-muted)]">
+        <strong className="font-semibold text-[var(--text)]">Ledgerforge Public Beta</strong>
+        {' — '}
+        Features, calculations and market observations may be incomplete, delayed or occasionally incorrect while we
+        test the platform. Verify important in-game decisions.{' '}
+        <Link href="/status" className="underline underline-offset-2 hover:text-[var(--text)]">
+          Data status
+        </Link>
+      </div>
       {fixture.enabled ? (
         <div
           role="alert"

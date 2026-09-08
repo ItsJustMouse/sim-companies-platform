@@ -104,4 +104,18 @@ export function calculatorBySlug(slug: string): CalculatorEntry | undefined {
   return CALCULATORS.find((entry) => entry.slug === slug);
 }
 
+/**
+ * Calculators exposed in the v0.1 public beta.
+ *
+ * Production and vertical-integration require verified building/recipe catalog
+ * data that is not available yet. Their implementations remain in the codebase,
+ * but they are deliberately excluded from public discovery until that data source
+ * is verified.
+ */
+export const BETA_CALCULATORS = CALCULATORS.filter(
+  (entry) =>
+    entry.slug !== 'production' &&
+    entry.slug !== 'vertical-integration',
+);
+
 export const CALCULATOR_GROUPS = ['Production', 'Selling', 'Investment', 'Planning'] as const;
