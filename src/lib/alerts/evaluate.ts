@@ -6,6 +6,7 @@ import { marketRepository } from '@/lib/market/service';
 import { priceChange } from '@/lib/market/statistics';
 import { log } from '@/lib/util/logger';
 import { deliver } from './deliver';
+import { isQualityAlertSnapshotFresh } from './freshness';
 import type { JobContext, JobResult } from '@/lib/jobs/runner';
 
 /**
@@ -13,9 +14,9 @@ import type { JobContext, JobResult } from '@/lib/jobs/runner';
  *
  * Runs against stored snapshots rather than issuing its own upstream requests: an
  * alert engine that polled the game per subscription would multiply our footprint by
- * the number of users, which is precisely the failure mode the whole caching
- * architecture exists to avoid. Alerts are therefore exactly as fresh as collection,
- * and the UI says so when you create one.
+ * the number of users, which is precisely the failure mode the background collection
+ * architecture exists to avoid. Quality alerts are skipped when their latest
+ * order-book snapshot is older than the alert freshness limit.
  *
  * Two properties keep this from becoming a notification firehose:
  *   - a per-alert cooldown, so a price oscillating around a threshold fires once;
@@ -100,13 +101,28 @@ async function evaluateOne(
   alert: typeof alerts.$inferSelect,
   productName: string,
 ): Promise<EvaluationOutcome> {
+  const snapshotSource = alert.quality === 0 ? 'ticker' : 'order-book';
+
   const snapshot = await marketRepository.latestSnapshotBySource(
     alert.realmId,
     alert.resourceId,
-    alert.quality === 0 ? 'ticker' : 'order-book',
+    snapshotSource,
   );
+
   if (!snapshot) {
     return { alertId: alert.id, fired: false, reason: 'no market data', observedValue: null };
+  }
+
+  if (
+    alert.quality > 0 &&
+    !isQualityAlertSnapshotFresh(snapshot.observedAt)
+  ) {
+    return {
+      alertId: alert.id,
+      fired: false,
+      reason: 'stale order-book data',
+      observedValue: null,
+    };
   }
 
   const price = marketRepository.priceAtQuality(snapshot.pricesByQuality, alert.quality, snapshot.lowestPrice);
