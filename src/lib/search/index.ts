@@ -32,7 +32,7 @@ const STATIC_ENTRIES: IndexEntry[] = [
   { kind: 'tool', title: 'Building ROI', href: '/calculators/investment', subtitle: 'Payback period and return on a build or upgrade', keywords: ['roi', 'payback', 'upgrade', 'construction', 'investment'] },
   { kind: 'tool', title: 'Loan and bond calculator', href: '/calculators/loan', subtitle: 'Cost of borrowing versus expected return', keywords: ['debt', 'bond', 'interest', 'borrow', 'loan'] },
   { kind: 'tool', title: 'Capital allocation', href: '/calculators/allocation', subtitle: 'Compare where to put your money', keywords: ['allocation', 'compare', 'opportunity cost', 'capital'] },
-  { kind: 'tool', title: 'Exchange', href: '/exchange', subtitle: 'Live prices, supply and movement for every product', keywords: ['prices', 'market', 'exchange', 'listings'] },
+  { kind: 'tool', title: 'Exchange', href: '/exchange', subtitle: 'Recorded headline prices and market movement for every product', keywords: ['prices', 'market', 'exchange'] },
   { kind: 'guide', title: 'Beginner centre', href: '/learn', subtitle: 'Start here if the game is new to you', keywords: ['beginner', 'start', 'new', 'tutorial', 'how to play'] },
   { kind: 'guide', title: 'Glossary', href: '/learn/glossary', subtitle: 'Plain-language definitions of every term we use', keywords: ['glossary', 'definitions', 'terms', 'margin', 'roi'] },
   { kind: 'guide', title: 'Common beginner mistakes', href: '/learn/mistakes', subtitle: 'The expensive errors, and how to avoid them', keywords: ['mistakes', 'errors', 'avoid', 'wrong'] },

@@ -7,7 +7,7 @@ import { breadcrumbs, buildMetadata } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'How we calculate',
   description:
-    'Every formula Ledgerforge uses for Sim Companies profitability, with its source, our confidence in it, and what we deliberately do not model.',
+    'How Ledgerforge handles market observations, calculations, assumptions and uncertain Sim Companies mechanics.',
   path: '/methodology',
 });
 
@@ -39,7 +39,10 @@ export default function MethodologyPage() {
       </div>
 
       <Card>
-        <CardHeader title="The core production formula" description="Every profit figure on this site resolves to this." />
+        <CardHeader
+          title="The core production formula"
+          description="Documented for transparency; production calculators are not exposed in the v0.1 Public Beta."
+        />
         <div className="overflow-x-auto p-4 sm:p-5">
           <pre className="font-mono text-xs leading-relaxed text-[var(--text-muted)]">
 {`unitsPerHour       = baseUnitsPerHour x buildingLevel x (1 + productionBonus) x abundance
@@ -85,15 +88,15 @@ breakEvenPrice     = totalCostPerUnit / (exchange ? 1 - exchangeFee : 1)`}
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
             <strong className="text-[var(--text)]">Retail demand.</strong> How a store&rsquo;s sale rate responds to
-            price, quality and local demand is not published anywhere we could verify. The retail calculator therefore
-            takes the throughput you observe in your own store and does exact arithmetic around it, rather than
-            inventing a demand curve and dressing it up as a prediction.
+            price, quality and local demand is not published anywhere we could verify. Ledgerforge therefore does not
+            expose its retail calculator in the v0.1 Public Beta rather than presenting an incomplete model as reliable.
           </p>
           <p>
-            <strong className="text-[var(--text)]">Order-book depth in headline prices.</strong> A product&rsquo;s
-            listed price is the cheapest open offer. If you need more units than that offer holds, you will pay more.
-            We show depth and liquidity beside every price for this reason, but headline figures use the cheapest
-            listing.
+            <strong className="text-[var(--text)]">Order-book depth in headline prices.</strong> The whole-market
+            ticker supplies a headline price but does not expose quantity, listing count, quality breakdown, median price
+            or weighted average price, and we do not assume that headline value has order-book semantics the endpoint
+            does not document. Deeper order-book observations are collected separately and may be older than the
+            headline price.
           </p>
           <p>
             <strong className="text-[var(--text)]">Future prices.</strong> Nothing here forecasts. Every projection is
@@ -106,9 +109,10 @@ breakEvenPrice     = totalCostPerUnit / (exchange ? 1 - exchangeFee : 1)`}
         <CardHeader title="How prices and history are gathered" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
-            A single background collector reads the Exchange on a schedule and stores a summary of each order book.
-            Charts are built from those snapshots — the game publishes no price history, so a series starts when our
-            collection did and we never imply otherwise.
+            A single background collector reads the whole-market ticker on a schedule for headline prices. Separate
+            product-specific order-book checks rotate more slowly because each requires its own upstream request.
+            Ledgerforge builds its historical series from the observations it records, so a series starts when our
+            collection did and we never fabricate earlier history.
           </p>
           <p>
             Percentage changes compare the latest observation against the one closest to the requested age, and only

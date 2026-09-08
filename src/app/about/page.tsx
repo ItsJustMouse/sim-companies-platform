@@ -53,8 +53,9 @@ export default function AboutPage() {
             cycle.
           </p>
           <p>
-            <strong className="text-[var(--text)]">Minimal data about you.</strong> Most of the site needs no account.
-            Watchlists and your company workspace live in your browser. We never ask for your Sim Companies login.
+            <strong className="text-[var(--text)]">Minimal data about you.</strong> The v0.1 Public Beta needs no
+            account. Watchlists and any local workspace data stay in your browser. We never ask for your Sim Companies
+            login.
           </p>
         </div>
       </Card>
@@ -68,8 +69,8 @@ export default function AboutPage() {
             belong to their respective owners and are used here only to identify the game this tool supports.
           </p>
           <p>
-            Game data is read from the game&rsquo;s public API, which is undocumented and unsupported. We keep our
-            request rate low and identify ourselves in every request. If the operators would prefer we did something
+            Game data is read from publicly accessible game endpoints that are undocumented and unsupported. We keep
+            our request rate low and identify ourselves in every request. If the operators would prefer we did something
             differently, we would rather hear it than be blocked.
           </p>
         </div>

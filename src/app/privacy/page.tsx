@@ -13,8 +13,8 @@ export default function PrivacyPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Privacy</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--text-muted)]">
-          The short version: you can use almost all of this site without giving us anything, and the parts that do need
-          data need very little.
+          The short version: the v0.1 Public Beta does not require an account, and the public tools need very little
+          information about you.
         </p>
       </div>
 
@@ -24,12 +24,12 @@ export default function PrivacyPage() {
       </Callout>
 
       <Card>
-        <CardHeader title="Without an account" />
+        <CardHeader title="Data stored by the v0.1 Public Beta" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>We store nothing about you on our servers. Specifically:</p>
           <ul className="ml-4 list-disc space-y-1">
             <li>Your watchlist is in your browser&rsquo;s local storage, not our database.</li>
-            <li>Your company workspace, and the advice generated from it, is in your browser and computed there.</li>
+            <li>Any local workspace data you choose to enter stays in your browser and is computed there.</li>
             <li>Your theme choice is in your browser.</li>
             <li>There is no analytics script, no advertising and no third-party tracker on any page.</li>
           </ul>
@@ -41,18 +41,15 @@ export default function PrivacyPage() {
       </Card>
 
       <Card>
-        <CardHeader title="With an account" />
+        <CardHeader title="Accounts and alerts" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
-          <p>An account exists only to make alerts work while your browser is closed. We store:</p>
-          <ul className="ml-4 list-disc space-y-1">
-            <li>Your email address.</li>
-            <li>The alerts you create, and a record of when they fired and whether delivery succeeded.</li>
-            <li>A hash of your session token — never the token itself, so a database leak yields no usable sessions.</li>
-            <li>A Discord webhook URL, if you supply one, encrypted at rest.</li>
-          </ul>
           <p>
-            We do not store passwords, because there are none: sign-in is by emailed link. We do not ask for a name, and
-            we do not build a profile.
+            Accounts and server-side alerts are not enabled in the v0.1 Public Beta. The public beta therefore does not
+            ask for or accept an account email address, create login sessions, or deliver account alerts.
+          </p>
+          <p>
+            The underlying account and alert features are still being tested and will receive their own privacy review
+            before they are exposed publicly.
           </p>
         </div>
       </Card>
@@ -80,9 +77,8 @@ export default function PrivacyPage() {
         <CardHeader title="Cookies" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
-            One, and only if you sign in: a session cookie that keeps you signed in. It is HttpOnly, SameSite=Lax and
-            Secure. There are no advertising or analytics cookies, which is why this site has no cookie banner — there
-            is nothing to consent to.
+            The v0.1 Public Beta does not use an account session cookie because sign-in is disabled. There are no
+            advertising or analytics cookies and no third-party advertising tracker.
           </p>
         </div>
       </Card>
@@ -113,7 +109,7 @@ export default function PrivacyPage() {
           <p>
             Market observations are about products, not people, and are kept indefinitely in aggregated form because
             they are the price history the site exists to provide. Detailed snapshots are pruned after a few weeks once
-            they have been aggregated. Sessions expire and are deleted. Login links expire after 15 minutes.
+            they have been aggregated. Account sessions and login links are not part of the exposed v0.1 Public Beta.
           </p>
         </div>
       </Card>

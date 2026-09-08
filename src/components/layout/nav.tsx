@@ -14,7 +14,7 @@ import clsx from 'clsx';
  */
 
 const LINKS = [
-  { href: '/exchange', label: 'Exchange', hint: 'Live prices for every product' },
+  { href: '/exchange', label: 'Exchange', hint: 'Latest recorded headline prices for every product' },
   { href: '/market', label: 'Market', hint: 'Movers, volatility and category trends' },
   { href: '/calculators', label: 'Calculators', hint: 'ROI, borrowing and capital planning tools' },
   { href: '/learn', label: 'Learn', hint: 'Beginner guides and game mechanics' },
