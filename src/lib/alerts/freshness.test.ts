@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ALERT_CHANGE_MAX_REFERENCE_DRIFT_HOURS,
   QUALITY_ALERT_MAX_SNAPSHOT_AGE_SECONDS,
+  alertChangeToleranceRatio,
   isQualityAlertSnapshotFresh,
 } from './freshness';
 
@@ -45,5 +47,29 @@ describe('isQualityAlertSnapshotFresh', () => {
     expect(
       isQualityAlertSnapshotFresh(new Date('invalid'), now),
     ).toBe(false);
+  });
+});
+
+describe('alertChangeToleranceRatio', () => {
+  it('keeps the normal half-window tolerance for a one-hour alert', () => {
+    expect(alertChangeToleranceRatio(1)).toBe(0.5);
+  });
+
+  it('caps a six-hour alert at the maximum reference drift', () => {
+    expect(
+      alertChangeToleranceRatio(6) * 6,
+    ).toBeCloseTo(ALERT_CHANGE_MAX_REFERENCE_DRIFT_HOURS, 10);
+  });
+
+  it('caps a seven-day alert at the same absolute drift', () => {
+    expect(
+      alertChangeToleranceRatio(168) * 168,
+    ).toBeCloseTo(ALERT_CHANGE_MAX_REFERENCE_DRIFT_HOURS, 10);
+  });
+
+  it('rejects invalid windows', () => {
+    expect(alertChangeToleranceRatio(0)).toBe(0);
+    expect(alertChangeToleranceRatio(-1)).toBe(0);
+    expect(alertChangeToleranceRatio(Number.NaN)).toBe(0);
   });
 });

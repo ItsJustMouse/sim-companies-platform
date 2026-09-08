@@ -6,7 +6,10 @@ import { marketRepository } from '@/lib/market/service';
 import { priceChange } from '@/lib/market/statistics';
 import { log } from '@/lib/util/logger';
 import { deliver } from './deliver';
-import { isQualityAlertSnapshotFresh } from './freshness';
+import {
+  alertChangeToleranceRatio,
+  isQualityAlertSnapshotFresh,
+} from './freshness';
 import type { JobContext, JobResult } from '@/lib/jobs/runner';
 
 /**
@@ -171,7 +174,11 @@ async function evaluateOne(
         interval: 'raw',
       });
 
-      const change = priceChange(history.points, windowHours);
+      const change = priceChange(
+        history.points,
+        windowHours,
+        alertChangeToleranceRatio(windowHours),
+      );
       if (!change) {
         // Not enough history to measure the window is not the same as "no change".
         return { alertId: alert.id, fired: false, reason: 'insufficient history', observedValue: price };
