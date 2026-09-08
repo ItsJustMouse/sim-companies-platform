@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Card, CardHeader, Callout } from '@/components/ui/primitives';
 import { buildMetadata } from '@/lib/seo';
 
@@ -97,11 +96,8 @@ export default function PrivacyPage() {
               site data in your browser. Nothing was sent to us.
             </li>
             <li>
-              <strong className="text-[var(--text)]">Your account</strong> — the delete button on{' '}
-              <Link href="/account" className="text-[var(--accent)] underline underline-offset-2">
-                your account page
-              </Link>{' '}
-              removes your account, alerts and alert history immediately. No grace period, no soft delete.
+              <strong className="text-[var(--text)]">Accounts</strong> — accounts and server-side alerts are not enabled
+              in the v0.1 Public Beta.
             </li>
             <li>
               <strong className="text-[var(--text)]">Export</strong> — your company workspace can be copied out as JSON

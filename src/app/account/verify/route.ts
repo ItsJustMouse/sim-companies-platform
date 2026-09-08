@@ -19,10 +19,15 @@ export const dynamic = 'force-dynamic';
  * header on the next navigation.
  */
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const token = url.searchParams.get('token');
+  const publicBetaAccountsEnabled: boolean = false;
   const base = env().APP_URL.replace(/\/+$/, '');
 
+  if (!publicBetaAccountsEnabled) {
+    return NextResponse.redirect(`${base}/account`);
+  }
+
+  const url = new URL(request.url);
+  const token = url.searchParams.get('token');
   if (!token) {
     return NextResponse.redirect(`${base}/account?error=invalid`);
   }

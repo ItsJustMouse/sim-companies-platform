@@ -27,6 +27,9 @@ const CONDITION_LABELS: Record<string, string> = {
 };
 
 export default async function AlertsPage() {
+  const publicBetaAccountsEnabled: boolean = false;
+  if (!publicBetaAccountsEnabled) redirect('/account');
+
   const user = await currentUser();
   if (!user) redirect('/account');
 
