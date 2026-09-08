@@ -20,7 +20,7 @@ export interface QuoteResult {
   /** Latest full order-book observation, which may be older than the headline. */
   readonly depthQuote: MarketQuote | null;
   readonly offers: readonly MarketOffer[];
-  readonly freshness: 'live' | 'stale' | 'stored' | 'unavailable';
+  readonly freshness: 'live' | 'stale' | 'recorded' | 'unavailable';
   readonly observedAt: string | null;
   readonly ageSeconds: number | null;
   readonly depthObservedAt: string | null;
@@ -48,7 +48,7 @@ export async function getQuote(realmId: number, resourceId: number): Promise<Quo
     quote,
     depthQuote,
     offers: [],
-    freshness: quote ? 'stored' : 'unavailable',
+    freshness: quote ? 'recorded' : 'unavailable',
     observedAt: headlineSnapshot?.observedAt.toISOString() ?? null,
     ageSeconds: headlineSnapshot
       ? Math.round((Date.now() - headlineSnapshot.observedAt.getTime()) / 1000)
