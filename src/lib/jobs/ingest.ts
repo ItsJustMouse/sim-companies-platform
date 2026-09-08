@@ -109,9 +109,8 @@ export async function snapshotMarket(
     buildTickerQuote(entry, observedAt),
   );
 
-  context.progress(quotes.length);
-
   const written = await persistQuotes(quotes);
+  context.progress(written);
   if (written > 0) await clearFixtureFlagIfSet();
 
   return {
@@ -147,9 +146,8 @@ export async function snapshotOrderBook(
     observedAt,
   });
 
-  context.progress(1);
-
   const written = await persistQuotes([quote]);
+  context.progress(written);
   if (written > 0) await clearFixtureFlagIfSet();
 
   return {

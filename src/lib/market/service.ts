@@ -250,7 +250,7 @@ export async function persistQuotes(quotes: readonly MarketQuote[]): Promise<num
     return await repo.recordSnapshots(quotes);
   } catch (error) {
     log.error('failed to persist market snapshots', { error, count: quotes.length });
-    return 0;
+    throw error;
   }
 }
 

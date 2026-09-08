@@ -19,7 +19,7 @@ export type MarketSnapshotSource = 'ticker' | 'order-book';
 export async function recordSnapshots(quotes: readonly MarketQuote[]): Promise<number> {
   if (quotes.length === 0) return 0;
 
-  await db()
+  const inserted = await db()
     .insert(marketSnapshots)
     .values(
       quotes.map((q) => ({
@@ -38,9 +38,10 @@ export async function recordSnapshots(quotes: readonly MarketQuote[]): Promise<n
     )
     // A re-run of the same sweep must not fail the whole batch; the primary key
     // already pins one row per (realm, resource, instant).
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning({ resourceId: marketSnapshots.resourceId });
 
-  return quotes.length;
+  return inserted.length;
 }
 
 /** Most recent observation from one specific collection source. */
