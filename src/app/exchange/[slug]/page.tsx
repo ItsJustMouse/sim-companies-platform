@@ -138,29 +138,16 @@ export default async function ProductPage({ params }: PageProps) {
           { name: resource.name, path: `/exchange/${resource.slug}` },
         ])}
       />
-      {quote?.lowestPrice != null ? (
-        <JsonLd
-          data={{
-            '@context': 'https://schema.org',
-            '@type': 'Product',
-            name: resource.name,
-            category: resource.category ?? undefined,
-            url: siteUrl(`/exchange/${resource.slug}`),
-            description: `Sim Companies in-game commodity. Current exchange price and production analysis on Ledgerforge.`,
-            offers: {
-              '@type': 'AggregateOffer',
-              // Prices are in-game currency, not a real-world sale. Declaring a real
-              // currency here would be a false claim in structured data, so we mark
-              // it with the reserved "no currency" code.
-              priceCurrency: 'XXX',
-              lowPrice: quote.lowestPrice,
-              highPrice: quote.highestPrice ?? quote.lowestPrice,
-              ...(quote.offerCount !== null ? { offerCount: quote.offerCount } : {}),
-              availability: 'https://schema.org/InStock',
-            },
-          }}
-        />
-      ) : null}
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: resource.name,
+          category: resource.category ?? undefined,
+          url: siteUrl(`/exchange/${resource.slug}`),
+          description: `Sim Companies in-game commodity. Exchange price history and production analysis on Ledgerforge.`,
+        }}
+      />
 
       <nav aria-label="Breadcrumb" className="text-xs text-[var(--text-muted)]">
         <Link href="/exchange" className="hover:text-[var(--text)]">Exchange</Link>
