@@ -103,13 +103,18 @@ safe. **Do not** deploy a version that reads a column its migration has not crea
 
 ```bash
 npm run db:migrate
-npm run worker:once catalog     # populate the game catalog first
-npm run worker:once snapshot    # first price sweep
-npm run worker:once candles     # aggregate
+npm run worker:once snapshot    # consume one coordinated market-collection slot
+npm run worker:once candles     # aggregate any observations already available
 ```
 
-Charts fill in as collection continues; the site is honest about the short history in
-the meantime.
+Catalog sync is intentionally disabled until its aggregate upstream endpoints are
+verified. The market ticker can create partial resource rows as live market data
+arrives, so a fresh deployment does not need to force catalog collection first.
+
+A single `snapshot` invocation does not sweep every realm or product. The
+coordinator chooses one overdue realm ticker or one deep order-book target, and the
+long-running worker fills the dataset over time. Charts therefore fill in gradually;
+the site is honest about the short history in the meantime.
 
 ## Health and monitoring
 

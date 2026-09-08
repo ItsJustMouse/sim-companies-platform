@@ -132,6 +132,15 @@ export const marketSnapshots = pgTable(
     // key already serves. This index serves the cross-sectional "everything as of
     // time T" queries used by the market overview and the mover calculations.
     index('market_snapshots_observed_idx').on(t.observedAt),
+    // Source-aware reads dominate market history: ticker for headline series,
+    // order-book for depth and quality series. Equality on realm/source/resource
+    // plus a backward scan on observed_at serves the latest-observation paths too.
+    index('market_snapshots_source_resource_observed_idx').on(
+      t.realmId,
+      t.source,
+      t.resourceId,
+      t.observedAt,
+    ),
   ],
 );
 

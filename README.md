@@ -59,8 +59,10 @@ npm run dev
 
 Then <http://localhost:3000>.
 
-With real network access, replace the seeder with `npm run worker:once` to pull the
-live catalog and take a first price snapshot.
+With real network access, enable upstream access only for the collector process.
+`npm run worker:once snapshot` consumes one coordinated market-collection slot;
+the long-running worker continues collection on the configured schedule. Catalog
+sync remains disabled until its aggregate upstream endpoints are verified.
 
 ## Commands
 
@@ -71,7 +73,7 @@ live catalog and take a first price snapshot.
 | `npm run test` | Vitest |
 | `npm run db:migrate` | Apply migrations |
 | `npm run worker` | Long-running collector |
-| `npm run worker:once [steps]` | One pass: `catalog snapshot candles alerts prune` |
+| `npm run worker:once [steps]` | Run selected maintenance steps; `snapshot` means one coordinated market-collection slot |
 
 ## Stack
 

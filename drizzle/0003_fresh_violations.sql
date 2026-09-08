@@ -1,0 +1,1 @@
+CREATE INDEX "market_snapshots_source_resource_observed_idx" ON "market_snapshots" USING btree ("realm_id","source","resource_id","observed_at");
