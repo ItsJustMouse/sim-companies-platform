@@ -226,7 +226,7 @@ export function PriceChart({ points, overlay, height = 320, label = 'Price', col
           ) : null}
 
           {/* Time axis: first, middle and last only — a dense axis competes with the data. */}
-          {[0, Math.floor(points.length / 2), points.length - 1].map((index, position) => {
+          {Array.from(new Set([0, Math.floor(points.length / 2), points.length - 1])).map((index, position, indices) => {
             const point = points[index];
             if (!point || !geometry.coords[index]) return null;
             return (
@@ -236,7 +236,7 @@ export function PriceChart({ points, overlay, height = 320, label = 'Price', col
                 y={height - 8}
                 fontSize={10.5}
                 fill="var(--text-faint)"
-                textAnchor={position === 0 ? 'start' : position === 2 ? 'end' : 'middle'}
+                textAnchor={position === 0 ? 'start' : position === indices.length - 1 ? 'end' : 'middle'}
               >
                 {formatTick(point.at, first.at, last.at)}
               </text>

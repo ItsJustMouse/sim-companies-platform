@@ -114,12 +114,15 @@ export const marketSnapshots = pgTable(
     realmId: smallint('realm_id').notNull(),
     resourceId: integer('resource_id').notNull(),
     observedAt: timestamp('observed_at', { withTimezone: true }).notNull(),
+    /** Broad ticker observation or full order-book observation. */
+    source: varchar('source', { length: 16 }).notNull().default('order-book'),
     lowestPrice: doublePrecision('lowest_price'),
     highestPrice: doublePrecision('highest_price'),
     medianPrice: doublePrecision('median_price'),
     weightedAveragePrice: doublePrecision('weighted_average_price'),
-    totalQuantity: doublePrecision('total_quantity').notNull().default(0),
-    offerCount: integer('offer_count').notNull().default(0),
+    /** null when the ticker supplied price only and order-book depth was not measured. */
+    totalQuantity: doublePrecision('total_quantity'),
+    offerCount: integer('offer_count'),
     /** `{ "<quality>": price }` — cheapest offer satisfying each quality level. */
     pricesByQuality: jsonb('prices_by_quality').notNull().default(sql`'{}'::jsonb`),
   },
@@ -129,6 +132,15 @@ export const marketSnapshots = pgTable(
     // key already serves. This index serves the cross-sectional "everything as of
     // time T" queries used by the market overview and the mover calculations.
     index('market_snapshots_observed_idx').on(t.observedAt),
+    // Source-aware reads dominate market history: ticker for headline series,
+    // order-book for depth and quality series. Equality on realm/source/resource
+    // plus a backward scan on observed_at serves the latest-observation paths too.
+    index('market_snapshots_source_resource_observed_idx').on(
+      t.realmId,
+      t.source,
+      t.resourceId,
+      t.observedAt,
+    ),
   ],
 );
 

@@ -13,6 +13,7 @@ export const metadata = buildMetadata({
   description:
     'Every Sim Companies building with its construction cost, hourly wage bill per level, build time and what it can produce.',
   path: '/buildings',
+  index: false,
 });
 
 export default async function BuildingsPage() {

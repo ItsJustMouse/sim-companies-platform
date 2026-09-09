@@ -51,6 +51,50 @@ export async function upsertResources(realmId: number, items: readonly Resource[
   return items.length;
 }
 
+/**
+ * Ensures every resource visible in the whole-market ticker has a catalog row.
+ *
+ * The ticker only exposes ID, image path and headline price. On first insert we
+ * create a deliberately partial Resource record. On conflict we update only the
+ * image/sync time so a future richer encyclopedia sync is never downgraded back to
+ * ticker-derived metadata.
+ */
+export async function ensureTickerResources(
+  realmId: number,
+  items: readonly Resource[],
+): Promise<number> {
+  if (items.length === 0) return 0;
+
+  const now = new Date();
+
+  await db()
+    .insert(resources)
+    .values(
+      items.map((r) => ({
+        realmId,
+        resourceId: r.id,
+        name: r.name,
+        slug: r.slug,
+        image: r.image,
+        transportUnits: null,
+        baseUnitsPerHour: null,
+        retailable: null,
+        isResearch: null,
+        category: null,
+        syncedAt: now,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: [resources.realmId, resources.resourceId],
+      set: {
+        image: sqlExcluded('image'),
+        syncedAt: sqlExcluded('synced_at'),
+      },
+    });
+
+  return items.length;
+}
+
 export async function upsertBuildings(realmId: number, items: readonly Building[]): Promise<number> {
   if (items.length === 0) return 0;
   const now = new Date();

@@ -1,13 +1,17 @@
 /**
- * Runs one full ingestion pass and exits.
+ * Runs one ingestion pass and exits.
  *
  * Two uses: bootstrapping a fresh database, and running collection from an external
  * scheduler (a platform cron job, a Kubernetes CronJob) instead of a long-lived
- * worker process. Both topologies are supported; see docs/DEPLOYMENT.md.
+ * worker process. The historical `snapshot` step is retained as a CLI alias for
+ * one globally coordinated upstream collection slot.
+ *
+ * Both topologies are supported; see docs/DEPLOYMENT.md.
  */
 import { closeDb } from '@/lib/db/client';
 import { runJob } from '@/lib/jobs/runner';
-import { buildCandles, pruneHistory, snapshotMarket, syncCatalog } from '@/lib/jobs/ingest';
+import { buildCandles, pruneHistory, syncCatalog } from '@/lib/jobs/ingest';
+import { collectNextUpstream } from '@/lib/jobs/collector';
 import { evaluateAlerts } from '@/lib/alerts/evaluate';
 import { DEFAULT_REALM_ID, REALMS, type RealmId } from '@/lib/game/constants';
 import { log } from '@/lib/util/logger';
@@ -34,7 +38,10 @@ async function main(): Promise<void> {
         await runJob(`catalog-sync:${realmId}`, (ctx) => syncCatalog(ctx, realmId));
         break;
       case 'snapshot':
-        await runJob(`market-snapshot:${realmId}`, (ctx) => snapshotMarket(ctx, realmId));
+        // Backward-compatible CLI name. Market collection is now globally
+        // coordinated, so this consumes at most one upstream collection slot
+        // rather than forcing a ticker request for the selected realm.
+        await runJob('upstream-collection', (ctx) => collectNextUpstream(ctx));
         break;
       case 'candles':
         await runJob(`build-candles:${realmId}`, (ctx) => buildCandles(ctx, realmId));

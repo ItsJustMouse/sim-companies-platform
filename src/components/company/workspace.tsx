@@ -293,11 +293,6 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
                     ? 'Add your buildings and what each is producing. The advisor will then check them against current market prices.'
                     : 'Your buildings all look reasonable at current prices. That is the good outcome.'
                 }
-                action={
-                  <Link href="/opportunities" className="text-sm text-[var(--accent)] hover:underline">
-                    See what is worth producing
-                  </Link>
-                }
               />
             </Card>
           ) : (

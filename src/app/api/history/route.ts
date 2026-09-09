@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getHistory } from '@/lib/market/service';
 import { REALMS } from '@/lib/game/constants';
+import { rateLimitRequest, retryAfterSeconds } from '@/lib/util/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,25 @@ const querySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const requestLimit = await rateLimitRequest(request, {
+    scope: 'api-history',
+    limit: 60,
+    windowSeconds: 60,
+  });
+
+  if (!requestLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again shortly.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfterSeconds(requestLimit.resetAt)),
+          'Cache-Control': 'no-store',
+        },
+      },
+    );
+  }
+
   const url = new URL(request.url);
   const parsed = querySchema.safeParse({
     resourceId: url.searchParams.get('resourceId'),

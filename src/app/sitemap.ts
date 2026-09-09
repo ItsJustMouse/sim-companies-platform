@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { DEFAULT_REALM_ID } from '@/lib/game/constants';
-import { getResources, getBuildings } from '@/lib/catalog/service';
-import { CALCULATORS } from '@/lib/calculators/catalog';
+import { getResources } from '@/lib/catalog/service';
+import { BETA_CALCULATORS } from '@/lib/calculators/catalog';
 import { GUIDES } from '@/lib/content/guides';
 import { siteUrl } from '@/lib/seo';
 
@@ -23,9 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: siteUrl('/exchange'), lastModified: now, changeFrequency: 'hourly', priority: 0.9 },
     { url: siteUrl('/market'), lastModified: now, changeFrequency: 'hourly', priority: 0.8 },
     { url: siteUrl('/market/movers'), lastModified: now, changeFrequency: 'hourly', priority: 0.7 },
-    { url: siteUrl('/opportunities'), lastModified: now, changeFrequency: 'hourly', priority: 0.9 },
     { url: siteUrl('/calculators'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
-    { url: siteUrl('/company'), lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
     { url: siteUrl('/learn'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: siteUrl('/methodology'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: siteUrl('/status'), lastModified: now, changeFrequency: 'daily', priority: 0.4 },
@@ -34,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: siteUrl('/terms'), lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
   ];
 
-  const calculatorRoutes: MetadataRoute.Sitemap = CALCULATORS.map((entry) => ({
+  const calculatorRoutes: MetadataRoute.Sitemap = BETA_CALCULATORS.map((entry) => ({
     url: siteUrl(`/calculators/${entry.slug}`),
     lastModified: now,
     changeFrequency: 'weekly',
@@ -50,10 +48,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Catalog reads degrade to empty rather than failing, so a database outage
   // produces a smaller sitemap instead of a broken one.
-  const [{ data: resources }, { data: buildings }] = await Promise.all([
-    getResources(DEFAULT_REALM_ID).catch(() => ({ data: [] as Awaited<ReturnType<typeof getResources>>['data'] })),
-    getBuildings(DEFAULT_REALM_ID).catch(() => ({ data: [] as Awaited<ReturnType<typeof getBuildings>>['data'] })),
-  ]);
+  const { data: resources } = await getResources(DEFAULT_REALM_ID).catch(() => ({
+    data: [] as Awaited<ReturnType<typeof getResources>>['data'],
+  }));
 
   const productRoutes: MetadataRoute.Sitemap = resources.map((resource) => ({
     url: siteUrl(`/exchange/${resource.slug}`),
@@ -62,12 +59,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const buildingRoutes: MetadataRoute.Sitemap = buildings.map((building) => ({
-    url: siteUrl(`/buildings/${building.slug}`),
-    lastModified: now,
-    changeFrequency: 'weekly',
-    priority: 0.6,
-  }));
 
-  return [...staticRoutes, ...calculatorRoutes, ...guideRoutes, ...productRoutes, ...buildingRoutes];
+
+  return [...staticRoutes, ...calculatorRoutes, ...guideRoutes, ...productRoutes];
 }

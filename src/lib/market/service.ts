@@ -1,59 +1,84 @@
 import { cache as requestCache } from 'react';
-import { cacheKeys, cachePolicy } from '@/lib/cache/keys';
-import { swrTolerant } from '@/lib/cache/swr';
-import { fetchMarketOffers } from '@/lib/upstream/api';
 import { log } from '@/lib/util/logger';
 import { safeRead } from '@/lib/db/client';
 import type { MarketOffer, MarketQuote, Resource } from '@/lib/game/types';
 import { getResources } from '@/lib/catalog/service';
-import { buildQuote } from './quote';
 import * as repo from './repository';
 import { classifyTrend, liquidityScore, priceChange, volatility, type ChangeResult, type PricePoint } from './statistics';
 
 /**
  * The read API the product's pages use for market data.
  *
- * Pages never touch the upstream client or the cache directly: they ask this module
- * for a quote and receive it with its freshness attached, so "how old is this
- * number" is answerable at every level of the UI.
+ * Public page reads are database-only. They never wait for or reserve a Sim Companies
+ * API request. Background ingestion owns upstream collection and persists observations
+ * here, so "how old is this number" remains answerable at every level of the UI.
  */
 
+export const ORDER_BOOK_DEPTH_STALE_SECONDS = 96 * 60 * 60;
+
+export type DepthFreshness = 'recorded' | 'stale' | 'unavailable';
+
+export function classifyDepthFreshness(
+  ageSeconds: number | null,
+): DepthFreshness {
+  if (ageSeconds === null) return 'unavailable';
+  return ageSeconds >= ORDER_BOOK_DEPTH_STALE_SECONDS
+    ? 'stale'
+    : 'recorded';
+}
+
 export interface QuoteResult {
+  /** Latest headline ticker observation. */
   readonly quote: MarketQuote | null;
+  /** Latest full order-book observation, which may be older than the headline. */
+  readonly depthQuote: MarketQuote | null;
   readonly offers: readonly MarketOffer[];
-  readonly freshness: 'live' | 'stale' | 'stored' | 'unavailable';
+  readonly freshness: 'live' | 'stale' | 'recorded' | 'unavailable';
   readonly observedAt: string | null;
   readonly ageSeconds: number | null;
+  readonly depthObservedAt: string | null;
+  readonly depthAgeSeconds: number | null;
+  readonly depthFreshness: DepthFreshness;
 }
 
 export async function getQuote(realmId: number, resourceId: number): Promise<QuoteResult> {
-  const cached = await swrTolerant(cacheKeys.marketOffers(realmId, resourceId), cachePolicy.market, () =>
-    fetchMarketOffers(realmId, resourceId),
-  );
+  const [headlineSnapshot, depthSnapshot] = await Promise.all([
+    safeRead(
+      () => repo.latestSnapshotBySource(realmId, resourceId, 'ticker'),
+      null,
+      'latestTickerSnapshot',
+    ),
+    safeRead(
+      () => repo.latestSnapshotBySource(realmId, resourceId, 'order-book'),
+      null,
+      'latestOrderBookSnapshot',
+    ),
+  ]);
 
-  if (cached) {
-    const quote = buildQuote(cached.value, { resourceId, realmId, observedAt: cached.storedAt });
-    return {
-      quote,
-      offers: cached.value,
-      freshness: cached.degraded || cached.freshness === 'stale' ? 'stale' : 'live',
-      observedAt: cached.storedAt,
-      ageSeconds: cached.ageSeconds,
-    };
-  }
+  const quote = headlineSnapshot ? snapshotToQuote(headlineSnapshot) : null;
+  const depthQuote = depthSnapshot ? snapshotToQuote(depthSnapshot) : null;
 
-  // Upstream unreachable and nothing cached: fall back to our own last observation.
-  const snapshot = await safeRead(() => repo.latestSnapshot(realmId, resourceId), null, 'latestSnapshot');
-  if (!snapshot) {
-    return { quote: null, offers: [], freshness: 'unavailable', observedAt: null, ageSeconds: null };
-  }
+  const depthAgeSeconds = depthSnapshot
+    ? Math.max(
+        0,
+        Math.round(
+          (Date.now() - depthSnapshot.observedAt.getTime()) / 1000,
+        ),
+      )
+    : null;
 
   return {
-    quote: snapshotToQuote(snapshot),
+    quote,
+    depthQuote,
     offers: [],
-    freshness: 'stored',
-    observedAt: snapshot.observedAt.toISOString(),
-    ageSeconds: Math.round((Date.now() - snapshot.observedAt.getTime()) / 1000),
+    freshness: quote ? 'recorded' : 'unavailable',
+    observedAt: headlineSnapshot?.observedAt.toISOString() ?? null,
+    ageSeconds: headlineSnapshot
+      ? Math.round((Date.now() - headlineSnapshot.observedAt.getTime()) / 1000)
+      : null,
+    depthObservedAt: depthSnapshot?.observedAt.toISOString() ?? null,
+    depthAgeSeconds,
+    depthFreshness: classifyDepthFreshness(depthAgeSeconds),
   };
 }
 
@@ -61,12 +86,13 @@ export function snapshotToQuote(snapshot: {
   realmId: number;
   resourceId: number;
   observedAt: Date;
+  source: string;
   lowestPrice: number | null;
   highestPrice: number | null;
   medianPrice: number | null;
   weightedAveragePrice: number | null;
-  totalQuantity: number;
-  offerCount: number;
+  totalQuantity: number | null;
+  offerCount: number | null;
   pricesByQuality: unknown;
 }): MarketQuote {
   const pricesByQuality = (snapshot.pricesByQuality ?? {}) as Record<string, number>;
@@ -78,6 +104,7 @@ export function snapshotToQuote(snapshot: {
   return {
     resourceId: snapshot.resourceId,
     realmId: snapshot.realmId,
+    source: snapshot.source === 'ticker' ? 'ticker' : 'order-book',
     lowestPrice: snapshot.lowestPrice,
     highestPrice: snapshot.highestPrice,
     medianPrice: snapshot.medianPrice,
@@ -128,7 +155,7 @@ export const getMarketOverview = requestCache(async function getMarketOverview(
 ): Promise<MarketOverview> {
   const [{ data: resources }, latest, collectionStartedAt] = await Promise.all([
     getResources(realmId),
-    safeRead(() => repo.latestSnapshotPerResource(realmId), new Map(), 'latestSnapshotPerResource'),
+    safeRead(() => repo.latestSnapshotPerResource(realmId, 'ticker'), new Map(), 'latestSnapshotPerResource'),
     safeRead(() => repo.collectionStart(realmId), null, 'collectionStart'),
   ]);
 
@@ -164,7 +191,10 @@ export const getMarketOverview = requestCache(async function getMarketOverview(
       change24h,
       change7d: priceChange(series, 24 * 7),
       volatility7d: volatility(last7d),
-      liquidity: quote ? liquidityScore(quote.totalQuantity, quote.offerCount) : null,
+      liquidity:
+        quote && quote.totalQuantity !== null && quote.offerCount !== null
+          ? liquidityScore(quote.totalQuantity, quote.offerCount)
+          : null,
       trend: classifyTrend(change24h),
       high30d: prices.length > 0 ? Math.max(...prices) : null,
       low30d: prices.length > 0 ? Math.min(...prices) : null,
@@ -220,7 +250,7 @@ export async function persistQuotes(quotes: readonly MarketQuote[]): Promise<num
     return await repo.recordSnapshots(quotes);
   } catch (error) {
     log.error('failed to persist market snapshots', { error, count: quotes.length });
-    return 0;
+    throw error;
   }
 }
 

@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { getMarketOverview } from '@/lib/market/service';
-import { scanOpportunities, sortOpportunities } from '@/lib/market/opportunities';
 import { DEFAULT_REALM_ID } from '@/lib/game/constants';
 import { Card, CardHeader, Delta, SectionHeading, Stat } from '@/components/ui/primitives';
 import { FreshnessLine } from '@/components/ui/freshness';
-import { money, compactNumber, ratioAsPercent } from '@/lib/util/format';
+import { money, compactNumber } from '@/lib/util/format';
 import { buildMetadata } from '@/lib/seo';
 
 export const revalidate = 120;
@@ -12,7 +11,7 @@ export const revalidate = 120;
 export const metadata = buildMetadata({
   title: 'Sim Companies market prices, analytics and calculators',
   description:
-    'Live Sim Companies exchange prices with price history, profitability analysis, production calculators and an opportunity scanner that shows what is actually worth producing right now.',
+    'Sim Companies exchange prices with Ledgerforge-collected history, market analytics and practical planning calculators.',
   path: '/',
 });
 
@@ -20,36 +19,28 @@ const ENTRY_POINTS = [
   {
     href: '/exchange',
     title: 'Check market prices',
-    body: 'Every product, with current price, supply, movement and history.',
+    body: 'Browse current recorded prices, movement and Ledgerforge-collected history.',
   },
   {
-    href: '/opportunities',
-    title: 'Find profitable products',
-    body: 'Ranked by what they actually earn per hour, with the cost breakdown shown.',
+    href: '/market',
+    title: 'Read the market',
+    body: 'See movers, volatility and market trends from our collected observations.',
   },
   {
-    href: '/calculators/production',
-    title: 'Work out real profit',
-    body: 'Wages, overhead, transport and the exchange fee — not just price minus inputs.',
-  },
-  {
-    href: '/company',
-    title: 'Analyse a company',
-    body: 'Point it at a company and get specific, numbered recommendations.',
+    href: '/calculators',
+    title: 'Plan with calculators',
+    body: 'Investment, borrowing and capital-comparison tools with visible assumptions.',
   },
   {
     href: '/learn',
     title: 'Learn the game',
-    body: 'Plain-language guides to production, margins, ROI and opportunity cost.',
+    body: 'Plain-language guides to margins, ROI, opportunity cost and market decisions.',
   },
 ] as const;
 
 export default async function HomePage() {
   const realmId = DEFAULT_REALM_ID;
-  const [overview, scan] = await Promise.all([
-    getMarketOverview(realmId),
-    scanOpportunities(realmId),
-  ]);
+  const overview = await getMarketOverview(realmId);
 
   const priced = overview.rows.filter((row) => row.quote?.lowestPrice != null);
   const movers = [...priced]
@@ -57,22 +48,37 @@ export default async function HomePage() {
     .sort((a, b) => Math.abs(b.change24h?.percent ?? 0) - Math.abs(a.change24h?.percent ?? 0))
     .slice(0, 6);
 
-  const topOpportunities = sortOpportunities(scan.opportunities, 'profitPerHour')
-    .filter((o) => (o.profitPerHour ?? 0) > 0)
-    .slice(0, 5);
 
-  const totalSupply = priced.reduce((sum, row) => sum + (row.quote?.totalQuantity ?? 0), 0);
-  const totalListings = priced.reduce((sum, row) => sum + (row.quote?.offerCount ?? 0), 0);
+  /*
+   * Market-wide depth totals are meaningful only when every priced product in the
+   * snapshot has a full order-book observation. Ticker-only snapshots deliberately
+   * leave these values null.
+   */
+  const hasCompleteDepth =
+    priced.length > 0 &&
+    priced.every(
+      (row) =>
+        row.quote?.totalQuantity != null &&
+        row.quote?.offerCount != null,
+    );
+
+  const totalSupply = hasCompleteDepth
+    ? priced.reduce((sum, row) => sum + (row.quote?.totalQuantity ?? 0), 0)
+    : null;
+
+  const totalListings = hasCompleteDepth
+    ? priced.reduce((sum, row) => sum + (row.quote?.offerCount ?? 0), 0)
+    : null;
 
   return (
     <div className="space-y-10">
       <section className="pt-4">
         <h1 className="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-          Know what a product is worth, and what it actually costs you to make.
+          Know what the market is doing before you make your next move.
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[var(--text-muted)]">
-          Ledgerforge is an independent companion for Sim Companies. It tracks exchange prices over time, works out
-          real profit per hour including wages, overhead and fees, and shows its working on every number.
+          Ledgerforge is an independent Sim Companies companion that records exchange prices over time, tracks
+          market movement and provides transparent calculators for planning your next move.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-2">
@@ -83,10 +89,10 @@ export default async function HomePage() {
             Browse the Exchange
           </Link>
           <Link
-            href="/opportunities"
+            href="/calculators"
             className="rounded-md border border-[var(--border-strong)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--surface-muted)]"
           >
-            What should I produce?
+            Open calculators
           </Link>
         </div>
       </section>
@@ -111,7 +117,7 @@ export default async function HomePage() {
         </Card>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section>
         <div>
           <SectionHeading
             title="Biggest moves, last 24 hours"
@@ -143,47 +149,6 @@ export default async function HomePage() {
                       <span className="flex shrink-0 items-center gap-4">
                         <span className="tnum text-sm">{money(row.quote?.lowestPrice ?? null)}</span>
                         <Delta percent={row.change24h?.percent ?? null} />
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-
-        <div>
-          <SectionHeading
-            title="Best opportunities right now"
-            description="Profit per hour at building level 1, using current prices."
-            action={
-              <Link href="/opportunities" className="text-sm text-[var(--accent)] hover:underline">
-                Full scanner
-              </Link>
-            }
-          />
-          <Card>
-            {topOpportunities.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-[var(--text-muted)]">
-                No profitable production found at current prices under the default assumptions.
-              </p>
-            ) : (
-              <ul className="divide-y divide-[var(--border)]">
-                {topOpportunities.map((opportunity) => (
-                  <li key={opportunity.resource.id}>
-                    <Link
-                      href={`/exchange/${opportunity.resource.slug}`}
-                      className="flex items-center justify-between gap-4 px-4 py-2.5 transition-colors hover:bg-[var(--surface-muted)]"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium">{opportunity.resource.name}</span>
-                        <span className="block text-xs text-[var(--text-faint)]">
-                          {opportunity.building?.name ?? 'Unknown building'} · margin{' '}
-                          {ratioAsPercent(opportunity.margin)}
-                        </span>
-                      </span>
-                      <span className="tnum shrink-0 text-sm font-semibold text-[var(--up)]">
-                        {money(opportunity.profitPerHour)}/h
                       </span>
                     </Link>
                   </li>

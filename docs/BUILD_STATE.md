@@ -90,19 +90,18 @@ No charting dependency.
 curl: (56) CONNECT tunnel failed, response 403
 ```
 
-Every endpoint path and field name comes from community documentation and open-source
-clients, not from an observed response. The ingestion layer is deliberately tolerant,
-but **this is unverified**.
+Live testing has verified the whole-market ticker, the per-resource full order book,
+and the per-resource encyclopedia detail endpoint. The aggregate resource/building
+catalog endpoints previously assumed by the project were not verified and remain
+disabled.
 
-**First action on a machine with network access:**
+Recurring market collection therefore uses the verified ticker plus selective
+order-book requests. Keep `CATALOG_SYNC_ENABLED=false` until a low-volume aggregate
+catalog contract is independently verified. Do not probe guessed endpoints from the
+production worker.
 
-```bash
-UPSTREAM_ENABLED=true npm run worker:once catalog
-```
-
-Then compare against `docs/SIMCOMPANIES_API_RESEARCH.md` §3, correct it, and remove the
-caveat in §1. Errors of kind `invalid-response` on `/admin` point directly at whatever
-is wrong.
+Errors of kind `invalid-response` on `/admin` should be treated as an upstream
+contract change and investigated before collection is resumed.
 
 ### 2. Game artwork — needs a decision from the project owner
 

@@ -10,7 +10,7 @@ import { Badge } from './primitives';
  * value we cannot vouch for is labelled rather than quietly displayed.
  */
 
-export type FreshnessKind = 'live' | 'stale' | 'stored' | 'unavailable' | 'collected' | 'derived' | 'fixture';
+export type FreshnessKind = 'live' | 'stale' | 'recorded' | 'unavailable' | 'collected' | 'derived' | 'fixture';
 
 const LABELS: Record<FreshnessKind, { label: string; tone: 'up' | 'warn' | 'neutral' | 'danger' | 'accent'; help: string }> = {
   live: {
@@ -23,10 +23,10 @@ const LABELS: Record<FreshnessKind, { label: string; tone: 'up' | 'warn' | 'neut
     tone: 'warn',
     help: 'The last successful read is older than our freshness window. Shown because an old price beats no price, but treat it with care.',
   },
-  stored: {
-    label: 'From our records',
-    tone: 'warn',
-    help: 'The game API is unreachable. This is the most recent observation Ledgerforge recorded.',
+  recorded: {
+    label: 'Recorded by Ledgerforge',
+    tone: 'neutral',
+    help: 'The latest market observation Ledgerforge has recorded. The timestamp shows when the measurement was taken.',
   },
   unavailable: {
     label: 'Unavailable',

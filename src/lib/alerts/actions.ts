@@ -41,7 +41,10 @@ const createSchema = z.object({
   quality: z.coerce.number().int().min(0).max(20),
   condition: z.enum(['price_below', 'price_above', 'pct_change_up', 'pct_change_down']),
   threshold: z.coerce.number().finite().min(-1e12).max(1e12),
-  windowHours: z.coerce.number().int().min(1).max(720).optional(),
+  // Alert evaluation currently uses raw snapshots, retained for 21 days.
+  // Keep the supported alert windows aligned with the public UI until longer
+  // windows are explicitly evaluated from candles.
+  windowHours: z.coerce.number().int().min(1).max(168).optional(),
   channel: z.enum(['none', 'email', 'discord']),
   destination: z.string().max(500).optional(),
   cooldownHours: z.coerce.number().int().min(1).max(168),

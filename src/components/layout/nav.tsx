@@ -14,11 +14,9 @@ import clsx from 'clsx';
  */
 
 const LINKS = [
-  { href: '/exchange', label: 'Exchange', hint: 'Live prices for every product' },
+  { href: '/exchange', label: 'Exchange', hint: 'Latest recorded headline prices for every product' },
   { href: '/market', label: 'Market', hint: 'Movers, volatility and category trends' },
-  { href: '/opportunities', label: 'Opportunities', hint: 'What is worth producing right now' },
-  { href: '/calculators', label: 'Calculators', hint: 'Production, ROI, break-even and more' },
-  { href: '/company', label: 'Company', hint: 'Analyse your own company' },
+  { href: '/calculators', label: 'Calculators', hint: 'ROI, borrowing and capital planning tools' },
   { href: '/learn', label: 'Learn', hint: 'Beginner guides and game mechanics' },
 ] as const;
 

@@ -15,8 +15,8 @@ env:
   NEXT_TELEMETRY_DISABLED: '1'
 
 jobs:
-  quality:
-    name: Typecheck, lint and test
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,35 +28,8 @@ jobs:
 
       - run: npm ci
 
-      # Ordered cheapest-first so the common failure surfaces in seconds rather than
-      # after a full build.
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test
-        run: npm run test
-
-  build:
-    name: Production build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      # No database and no upstream access. The build must not need either: reads
-      # degrade to an empty state, and the environment guard is scoped to runtime.
-      # If this job starts failing, that property has regressed.
-      - name: Build
-        run: npm run build
+      - name: Verify release build
+        run: npm run verify
         env:
           UPSTREAM_ENABLED: 'false'
 
@@ -117,10 +90,6 @@ jobs:
 
       - run: npm ci
 
-      # Advisory rather than blocking, for now. A high-severity advisory in a
-      # transitive dependency should not stop an unrelated fix from shipping, but it
-      # should be visible in every run. Tighten to `--audit-level=high` without
-      # `continue-on-error` once the baseline is clean.
+      # High- and critical-severity dependency advisories block release.
       - name: npm audit
         run: npm audit --audit-level=high
-        continue-on-error: true

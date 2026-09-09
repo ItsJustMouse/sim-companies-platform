@@ -50,6 +50,22 @@ export default async function MarketPage() {
   const advancing = withChange.filter((r) => (r.change24h?.percent ?? 0) > 0).length;
   const declining = withChange.filter((r) => (r.change24h?.percent ?? 0) < 0).length;
 
+  /*
+   * A ticker snapshot knows headline prices but not order-book depth.
+   * Do not present a partial sum as if it were total market supply.
+   */
+  const hasCompleteDepth =
+    priced.length > 0 &&
+    priced.every(
+      (row) =>
+        row.quote?.totalQuantity != null &&
+        row.quote?.offerCount != null,
+    );
+
+  const totalSupply = hasCompleteDepth
+    ? priced.reduce((sum, row) => sum + (row.quote?.totalQuantity ?? 0), 0)
+    : null;
+
   return (
     <div className="space-y-6">
       <JsonLd data={breadcrumbs([{ name: 'Home', path: '/' }, { name: 'Market', path: '/market' }])} />
@@ -74,8 +90,8 @@ export default async function MarketPage() {
           <Stat label="Products priced" value={number(priced.length)} hint={`of ${overview.rows.length} tracked`} />
           <Stat
             label="Total supply"
-            value={compactNumber(priced.reduce((sum, r) => sum + (r.quote?.totalQuantity ?? 0), 0))}
-            hint="Units on offer"
+            value={compactNumber(totalSupply)}
+            hint={hasCompleteDepth ? 'Units on offer' : 'Depth not measured by ticker'}
           />
         </div>
       </Card>
@@ -116,14 +132,18 @@ export default async function MarketPage() {
                   <span className="truncate">{row.resource.name}</span>
                   <span className="flex items-center gap-3">
                     <span className="tnum text-xs text-[var(--text-faint)]">
-                      {compactNumber(row.quote?.totalQuantity ?? 0)} units
+                      {compactNumber(row.quote?.totalQuantity ?? null)} units
                     </span>
                     <span className="tnum font-medium">{row.liquidity}</span>
                   </span>
                 </Link>
               </li>
             ))}
-            {liquid.length === 0 ? <li className="px-4 py-6 text-sm text-[var(--text-muted)]">No priced products.</li> : null}
+            {liquid.length === 0 ? (
+              <li className="px-4 py-6 text-sm text-[var(--text-muted)]">
+                No order-book depth observations available.
+              </li>
+            ) : null}
           </ul>
         </Card>
       </div>

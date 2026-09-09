@@ -10,6 +10,7 @@ export const metadata = buildMetadata({
   description:
     'Should you buy an input on the exchange or produce it yourself? Compares delivered purchase price against in-house cost including the profit the producing building gives up — the opportunity cost that makes most self-production analyses wrong.',
   path: '/calculators/vertical-integration',
+  index: false,
 });
 
 export default async function VerticalIntegrationPage() {

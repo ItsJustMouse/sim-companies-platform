@@ -20,6 +20,8 @@ export const FLAG_KEYS = {
   fixtureData: 'fixture_data',
   maintenance: 'maintenance',
   announcement: 'announcement',
+  /** Restart-safe state for the upstream deep-collection fairness quota. */
+  collectorSchedule: 'collector_schedule',
 } as const;
 
 export interface FixtureFlag {
@@ -37,6 +39,11 @@ export interface AnnouncementFlag {
   readonly enabled: boolean;
   readonly message?: string;
   readonly level?: 'info' | 'warning';
+}
+
+export interface CollectorScheduleFlag {
+  /** Number of ordinary deep slots completed since the last alert-target slot. */
+  readonly normalDeepSlotsSinceAlert: number;
 }
 
 async function readFlag<T>(key: string, fallback: T): Promise<T> {
@@ -69,4 +76,20 @@ export function getMaintenanceFlag(): Promise<MaintenanceFlag> {
 
 export function getAnnouncementFlag(): Promise<AnnouncementFlag> {
   return readFlag<AnnouncementFlag>(FLAG_KEYS.announcement, { enabled: false });
+}
+
+export async function getCollectorScheduleFlag(): Promise<CollectorScheduleFlag> {
+  const value = await readFlag<Partial<CollectorScheduleFlag>>(
+    FLAG_KEYS.collectorSchedule,
+    { normalDeepSlotsSinceAlert: 0 },
+  );
+
+  const raw = value.normalDeepSlotsSinceAlert;
+
+  return {
+    normalDeepSlotsSinceAlert:
+      typeof raw === 'number' && Number.isInteger(raw) && raw >= 0
+        ? Math.min(raw, 3)
+        : 0,
+  };
 }

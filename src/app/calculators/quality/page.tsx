@@ -9,6 +9,7 @@ export const metadata = buildMetadata({
   title: 'Quality calculator — Sim Companies',
   description: 'Whether stepping up a quality level pays in Sim Companies: the premium the market actually pays, against what reaching that quality costs you.',
   path: '/calculators/quality',
+  index: false,
 });
 
 export default async function Page() {

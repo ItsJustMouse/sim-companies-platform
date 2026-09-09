@@ -123,7 +123,7 @@ export function UniversalSearch() {
   return (
     <div ref={containerRef} className="relative mx-auto w-full max-w-md">
       <label htmlFor={`${listId}-input`} className="sr-only">
-        Search products, buildings, calculators and guides
+        Search products, calculators and guides
       </label>
       <input
         id={`${listId}-input`}

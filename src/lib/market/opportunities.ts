@@ -69,8 +69,12 @@ export interface Opportunity {
   readonly liquidity: number | null;
   readonly volatility7d: number | null;
   readonly change24h: number | null;
-  readonly totalQuantity: number;
-  readonly offerCount: number;
+  /**
+   * Order-book depth. null means the broad market ticker did not measure this value.
+   * Never interpret null as zero supply or zero listings.
+   */
+  readonly totalQuantity: number | null;
+  readonly offerCount: number | null;
   readonly inputs: readonly ProductionInputLine[];
   /** Human-readable reasons this row ranks where it does. */
   readonly reasons: readonly string[];

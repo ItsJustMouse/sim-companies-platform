@@ -52,8 +52,8 @@ export default async function ExchangePage() {
       change7d: row.change7d?.percent ?? null,
       volatility: row.volatility7d,
       liquidity: row.liquidity,
-      quantity: row.quote?.totalQuantity ?? 0,
-      offers: row.quote?.offerCount ?? 0,
+      quantity: row.quote?.totalQuantity ?? null,
+      offers: row.quote?.offerCount ?? null,
       spark,
       observedAt: row.observedAt,
     };
@@ -74,7 +74,7 @@ export default async function ExchangePage() {
 
       <SectionHeading
         title="Exchange"
-        description="Every tracked product, with current price, supply and recent movement."
+        description="Every tracked product, with headline price, recent movement and order-book depth where measured."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <ExportLinks dataset="market" />
@@ -100,18 +100,18 @@ export default async function ExchangePage() {
 
       {overview.unpricedCount > 0 ? (
         <Callout tone="info">
-          {overview.unpricedCount} of {overview.rows.length} products have no current listings. They are shown with a
-          dash rather than a zero — an empty order book is not a price of nothing.
+          {overview.unpricedCount} of {overview.rows.length} products are currently reported without a headline market
+          price. They are shown with a dash rather than a zero.
         </Callout>
       ) : null}
 
-      <ExchangeTable rows={rows} qualities={qualities.length > 0 ? qualities : [0]} />
+      <ExchangeTable rows={rows} qualities={qualities} />
 
       <p className="text-xs leading-relaxed text-[var(--text-faint)]">
-        Prices are the cheapest open sell offer observed at the time shown. Percentage changes compare against the
-        closest observation to the stated age; when we have no observation near that point the cell shows a dash
-        rather than a number we cannot stand behind. Volatility is the standard deviation of period-over-period
-        returns, so products at very different price levels are directly comparable.
+        Headline prices come from the Sim Companies market ticker. The ticker does not identify the quality, quantity
+        or seller behind that price, so supply, liquidity and quality-specific values are shown only when Ledgerforge
+        has measured a full order book. Percentage changes compare against the closest recorded observation to the
+        stated age; when no suitable observation exists the cell shows a dash.
       </p>
     </div>
   );

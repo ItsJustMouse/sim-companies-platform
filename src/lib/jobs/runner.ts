@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { sql } from 'drizzle-orm';
-import { db } from '@/lib/db/client';
+import { db, sqlConnection } from '@/lib/db/client';
 import { jobRuns } from '@/lib/db/schema';
 import { log } from '@/lib/util/logger';
 
@@ -53,67 +53,90 @@ export async function runJob(
 ): Promise<JobResult | null> {
   const key = jobLockKey(job);
 
-  const lockResult = (await db().execute(
-    sql`SELECT pg_try_advisory_lock(${key}::bigint) AS locked`,
-  )) as unknown as { locked: boolean }[];
+  /*
+   * pg_advisory_lock is session-scoped. Reserve one physical postgres.js
+   * connection for the lifetime of the job so acquisition and release are
+   * guaranteed to happen on the same PostgreSQL session.
+   */
+  const connection = await sqlConnection().reserve();
+  let locked = false;
 
-  if (!lockResult[0]?.locked) {
-    log.info('job already running elsewhere, skipping', { job });
-    return null;
-  }
-
-  const runId = randomBytes(12).toString('hex');
-  let processed = 0;
-
-  await db()
-    .insert(jobRuns)
-    .values({ id: runId, job, status: 'running' })
-    .catch((error: unknown) => log.warn('could not record job start', { job, error }));
-
-  const startedAt = Date.now();
   try {
-    const result = await handler({
-      runId,
-      progress: (items) => {
-        processed = items;
-      },
-    });
+    const lockResult = await connection<{ locked: boolean }[]>`
+      SELECT pg_try_advisory_lock(${key}::bigint) AS locked
+    `;
+
+    locked = Boolean(lockResult[0]?.locked);
+
+    if (!locked) {
+      log.info('job already running elsewhere, skipping', { job });
+      return null;
+    }
+
+    const runId = randomBytes(12).toString('hex');
+    let processed = 0;
 
     await db()
-      .update(jobRuns)
-      .set({
-        status: 'ok',
-        finishedAt: new Date(),
-        itemsProcessed: result.itemsProcessed,
-        detail: { ...(result.detail ?? {}), durationMs: Date.now() - startedAt },
-      })
-      .where(sql`${jobRuns.id} = ${runId}`)
-      .catch((error: unknown) => log.warn('could not record job success', { job, error }));
+      .insert(jobRuns)
+      .values({ id: runId, job, status: 'running' })
+      .catch((error: unknown) => log.warn('could not record job start', { job, error }));
 
-    log.info('job completed', { job, items: result.itemsProcessed, durationMs: Date.now() - startedAt });
-    return result;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await db()
-      .update(jobRuns)
-      .set({
-        status: 'failed',
-        finishedAt: new Date(),
-        itemsProcessed: processed,
-        error: message.slice(0, 2000),
-        detail: { durationMs: Date.now() - startedAt },
-      })
-      .where(sql`${jobRuns.id} = ${runId}`)
-      .catch(() => {});
+    const startedAt = Date.now();
 
-    log.error('job failed', { job, error: message });
-    throw error;
+    try {
+      const result = await handler({
+        runId,
+        progress: (items) => {
+          processed = items;
+        },
+      });
+
+      await db()
+        .update(jobRuns)
+        .set({
+          status: 'ok',
+          finishedAt: new Date(),
+          itemsProcessed: result.itemsProcessed,
+          detail: { ...(result.detail ?? {}), durationMs: Date.now() - startedAt },
+        })
+        .where(sql`${jobRuns.id} = ${runId}`)
+        .catch((error: unknown) => log.warn('could not record job success', { job, error }));
+
+      log.info('job completed', {
+        job,
+        items: result.itemsProcessed,
+        durationMs: Date.now() - startedAt,
+      });
+
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      await db()
+        .update(jobRuns)
+        .set({
+          status: 'failed',
+          finishedAt: new Date(),
+          itemsProcessed: processed,
+          error: message.slice(0, 2000),
+          detail: { durationMs: Date.now() - startedAt },
+        })
+        .where(sql`${jobRuns.id} = ${runId}`)
+        .catch(() => {});
+
+      log.error('job failed', { job, error: message });
+      throw error;
+    }
   } finally {
-    // Released even on failure; holding a lock after a crash would stall the job
-    // until the connection died on its own.
-    await db()
-      .execute(sql`SELECT pg_advisory_unlock(${key}::bigint)`)
-      .catch(() => {});
+    if (locked) {
+      await connection`
+        SELECT pg_advisory_unlock(${key}::bigint)
+      `.catch((error: unknown) => {
+        log.error('failed to release job advisory lock', { job, error });
+      });
+    }
+
+    connection.release();
   }
 }
 

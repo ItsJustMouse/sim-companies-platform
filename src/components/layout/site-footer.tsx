@@ -7,15 +7,12 @@ const COLUMNS = [
       { href: '/exchange', label: 'Exchange' },
       { href: '/market', label: 'Market overview' },
       { href: '/market/movers', label: 'Gainers and losers' },
-      { href: '/opportunities', label: 'Opportunity scanner' },
     ],
   },
   {
     title: 'Tools',
     links: [
       { href: '/calculators', label: 'All calculators' },
-      { href: '/calculators/production', label: 'Production calculator' },
-      { href: '/calculators/vertical-integration', label: 'Buy or build inputs' },
       { href: '/calculators/investment', label: 'Building ROI' },
     ],
   },
@@ -51,7 +48,7 @@ export function SiteFooter() {
               <span className="font-semibold tracking-tight">Ledgerforge</span>
             </div>
             <p className="mt-2 max-w-xs text-sm text-[var(--text-muted)]">
-              Price the market. Plan the production.
+              Price the market. Plan your next move.
             </p>
           </div>
 

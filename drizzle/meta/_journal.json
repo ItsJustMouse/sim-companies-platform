@@ -15,6 +15,20 @@
       "when": 1788669741976,
       "tag": "0001_spotty_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788755693552,
+      "tag": "0002_futuristic_morg",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788823859630,
+      "tag": "0003_fresh_violations",
+      "breakpoints": true
     }
   ]
 }

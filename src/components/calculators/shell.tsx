@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { CALCULATORS, calculatorBySlug } from '@/lib/calculators/catalog';
+import { BETA_CALCULATORS, calculatorBySlug } from '@/lib/calculators/catalog';
 import { Card, Callout, SectionHeading } from '@/components/ui/primitives';
 import { FreshnessLine } from '@/components/ui/freshness';
 import { JsonLd } from '@/components/ui/json-ld';
@@ -25,7 +25,7 @@ export function CalculatorShell({
   if (!entry) throw new Error(`Unknown calculator "${slug}"`);
 
   const related = entry.related
-    .map((relatedSlug) => CALCULATORS.find((c) => c.slug === relatedSlug))
+    .map((relatedSlug) => BETA_CALCULATORS.find((c) => c.slug === relatedSlug))
     .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
   return (

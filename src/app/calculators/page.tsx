@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CALCULATORS, CALCULATOR_GROUPS } from '@/lib/calculators/catalog';
+import { BETA_CALCULATORS, CALCULATOR_GROUPS } from '@/lib/calculators/catalog';
 import { Card, SectionHeading } from '@/components/ui/primitives';
 import { JsonLd } from '@/components/ui/json-ld';
 import { breadcrumbs, buildMetadata } from '@/lib/seo';
@@ -7,7 +7,7 @@ import { breadcrumbs, buildMetadata } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'Sim Companies calculators',
   description:
-    'Production cost, profit per hour, break-even, building ROI, vertical integration, retail margin, quality premium and capital allocation calculators for Sim Companies — each one showing its formula and assumptions.',
+    'Building ROI, loan and capital comparison calculators for Sim Companies — each one showing its formula and assumptions.',
   path: '/calculators',
 });
 
@@ -27,7 +27,7 @@ export default function CalculatorsPage() {
       />
 
       {CALCULATOR_GROUPS.map((group) => {
-        const entries = CALCULATORS.filter((entry) => entry.group === group);
+        const entries = BETA_CALCULATORS.filter((entry) => entry.group === group);
         if (entries.length === 0) return null;
 
         return (

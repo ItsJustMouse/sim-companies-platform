@@ -38,18 +38,23 @@ const schema = z.object({
     .min(1)
     .default('Ledgerforge/0.1 (+https://ledgerforge.app; independent Sim Companies companion)'),
   /** Minimum milliseconds between two upstream requests, process-wide. */
-  UPSTREAM_MIN_INTERVAL_MS: z.coerce.number().int().min(0).default(1_100),
+  UPSTREAM_MIN_INTERVAL_MS: z.coerce.number().int().min(300_000).default(300_000),
   UPSTREAM_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(15_000),
-  UPSTREAM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
+  UPSTREAM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(0),
   /**
    * Hard off-switch. When false the upstream client refuses to make network calls and
    * every read is served from cache/database. Used in CI, tests and offline sandboxes.
    */
-  UPSTREAM_ENABLED: bool.default(true),
+  UPSTREAM_ENABLED: bool.default(false),
 
   // ---- Ingestion --------------------------------------------------------
   /** Whether this process should run the background scheduler. */
   WORKER_ENABLED: bool.default(false),
+  /**
+   * Catalog endpoints originally inferred during development are not currently
+   * verified and return 404. Keep scheduled catalog access disabled until replaced.
+   */
+  CATALOG_SYNC_ENABLED: bool.default(false),
   /** Minutes between full exchange sweeps. Upstream guidance is conservative. */
   MARKET_SNAPSHOT_INTERVAL_MINUTES: z.coerce.number().int().min(5).default(15),
   CATALOG_SYNC_INTERVAL_MINUTES: z.coerce.number().int().min(30).default(720),

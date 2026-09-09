@@ -83,7 +83,7 @@ export function InvestmentCalculator({ buildings }: { buildings: readonly Calcul
             max={1e9}
             step={1}
             onChange={setProfitPerHour}
-            hint="The additional profit per hour, not the total. Use the production calculator to work it out, then subtract what the capital earns where it is now."
+            hint="The additional profit per hour, not the total. Subtract what this capital already earns elsewhere so you are comparing the true improvement."
           />
 
           <NumberField

@@ -1,0 +1,153 @@
+name: ledgerforge
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ledgerforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ledgerforge
+    volumes:
+      - ledgerforge_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ledgerforge -d ledgerforge']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging:
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --save
+      - ''
+      - --appendonly
+      - 'no'
+      - --maxmemory
+      - 128mb
+      - --maxmemory-policy
+      - allkeys-lru
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging:
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  web:
+    image: ledgerforge:0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: 'production'
+      APP_URL: ${APP_URL:?APP_URL is required}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
+      SIMCOMPANIES_BASE_URL: ${SIMCOMPANIES_BASE_URL:-https://www.simcompanies.com}
+      SIMCOMPANIES_USER_AGENT: ${SIMCOMPANIES_USER_AGENT:?SIMCOMPANIES_USER_AGENT is required}
+      UPSTREAM_MIN_INTERVAL_MS: ${UPSTREAM_MIN_INTERVAL_MS:-300000}
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-15000}
+      UPSTREAM_MAX_RETRIES: ${UPSTREAM_MAX_RETRIES:-0}
+      MARKET_SNAPSHOT_INTERVAL_MINUTES: ${MARKET_SNAPSHOT_INTERVAL_MINUTES:-15}
+      CATALOG_SYNC_INTERVAL_MINUTES: ${CATALOG_SYNC_INTERVAL_MINUTES:-720}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      EMAIL_FROM: ${EMAIL_FROM:-Ledgerforge <no-reply@ledgerforge.example>}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      DATABASE_URL: postgres://ledgerforge:${POSTGRES_PASSWORD}@postgres:5432/ledgerforge
+      REDIS_URL: redis://redis:6379
+      UPSTREAM_ENABLED: 'false'
+      WORKER_ENABLED: 'false'
+      CATALOG_SYNC_ENABLED: 'false'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:3001:3000'
+    logging:
+      options:
+        max-size: 20m
+        max-file: '5'
+
+  worker:
+    image: ledgerforge:0.1
+    restart: unless-stopped
+    environment:
+      NODE_ENV: 'production'
+      APP_URL: ${APP_URL:?APP_URL is required}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
+      SIMCOMPANIES_BASE_URL: ${SIMCOMPANIES_BASE_URL:-https://www.simcompanies.com}
+      SIMCOMPANIES_USER_AGENT: ${SIMCOMPANIES_USER_AGENT:?SIMCOMPANIES_USER_AGENT is required}
+      UPSTREAM_MIN_INTERVAL_MS: ${UPSTREAM_MIN_INTERVAL_MS:-300000}
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-15000}
+      UPSTREAM_MAX_RETRIES: ${UPSTREAM_MAX_RETRIES:-0}
+      MARKET_SNAPSHOT_INTERVAL_MINUTES: ${MARKET_SNAPSHOT_INTERVAL_MINUTES:-15}
+      CATALOG_SYNC_INTERVAL_MINUTES: ${CATALOG_SYNC_INTERVAL_MINUTES:-720}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      EMAIL_FROM: ${EMAIL_FROM:-Ledgerforge <no-reply@ledgerforge.example>}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      DATABASE_URL: postgres://ledgerforge:${POSTGRES_PASSWORD}@postgres:5432/ledgerforge
+      REDIS_URL: redis://redis:6379
+      UPSTREAM_ENABLED: 'true'
+      WORKER_ENABLED: 'true'
+      CATALOG_SYNC_ENABLED: 'false'
+    command: ['npm', 'run', 'worker']
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      options:
+        max-size: 20m
+        max-file: '5'
+
+  migrate:
+    image: ledgerforge:0.1
+    profiles: ['tools']
+    environment:
+      NODE_ENV: 'production'
+      APP_URL: ${APP_URL:?APP_URL is required}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
+      SIMCOMPANIES_BASE_URL: ${SIMCOMPANIES_BASE_URL:-https://www.simcompanies.com}
+      SIMCOMPANIES_USER_AGENT: ${SIMCOMPANIES_USER_AGENT:?SIMCOMPANIES_USER_AGENT is required}
+      UPSTREAM_MIN_INTERVAL_MS: ${UPSTREAM_MIN_INTERVAL_MS:-300000}
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-15000}
+      UPSTREAM_MAX_RETRIES: ${UPSTREAM_MAX_RETRIES:-0}
+      MARKET_SNAPSHOT_INTERVAL_MINUTES: ${MARKET_SNAPSHOT_INTERVAL_MINUTES:-15}
+      CATALOG_SYNC_INTERVAL_MINUTES: ${CATALOG_SYNC_INTERVAL_MINUTES:-720}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      EMAIL_FROM: ${EMAIL_FROM:-Ledgerforge <no-reply@ledgerforge.example>}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      DATABASE_URL: postgres://ledgerforge:${POSTGRES_PASSWORD}@postgres:5432/ledgerforge
+      REDIS_URL: redis://redis:6379
+      UPSTREAM_ENABLED: 'false'
+      WORKER_ENABLED: 'false'
+    command: ['npm', 'run', 'db:migrate']
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  ledgerforge_pgdata:

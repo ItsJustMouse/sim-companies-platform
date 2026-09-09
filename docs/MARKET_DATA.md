@@ -144,11 +144,18 @@ require an admin login.
 
 ```bash
 npm run worker                       # long-running scheduler
-npm run worker:once                  # one full pass
-npm run worker:once snapshot         # just a sweep
-npm run worker:once catalog          # just the catalog
+npm run worker:once                  # run default maintenance steps once
+npm run worker:once snapshot         # one coordinated upstream collection slot
+npm run worker:once catalog          # catalog sync, only when explicitly enabled
 npm run worker:once candles prune    # aggregate and prune
 ```
 
+The historical `snapshot` command name is retained for compatibility, but it no
+longer means a full Exchange sweep. The coordinator chooses one action for the
+slot: either an overdue whole-realm ticker request or one product's full order
+book. `--realm=` still applies to realm-specific maintenance jobs such as catalog,
+candles and prune; it does not force the coordinator's market target.
+
 Both topologies are supported: a persistent worker, or a platform cron invoking
-`worker:once`. The advisory lock makes them safe to mix.
+`worker:once`. Advisory job locks prevent duplicate executions, and the
+PostgreSQL-backed upstream pacer independently enforces the global request interval.

@@ -14,6 +14,7 @@ export const metadata = buildMetadata({
   description:
     'Every Sim Companies product ranked by real profit per hour at current exchange prices, with the full cost breakdown, the reason for each ranking, and the risks worth checking before you commit capital.',
   path: '/opportunities',
+  index: false,
 });
 
 export default async function OpportunitiesPage() {

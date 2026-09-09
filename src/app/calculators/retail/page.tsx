@@ -9,6 +9,7 @@ export const metadata = buildMetadata({
   title: 'Retail calculator — Sim Companies',
   description: 'Retail margin, profit per hour and the throughput your store needs to beat selling the same goods on the Sim Companies exchange.',
   path: '/calculators/retail',
+  index: false,
 });
 
 export default async function Page() {

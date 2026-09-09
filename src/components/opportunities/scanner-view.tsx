@@ -36,8 +36,12 @@ export interface ScannerRow {
   liquidity: number | null;
   volatility: number | null;
   change24h: number | null;
-  quantity: number;
-  offers: number;
+  /**
+   * Exchange depth from a full order-book observation.
+   * null means the ticker supplied price only.
+   */
+  quantity: number | null;
+  offers: number | null;
   inputNames: string[];
   reasons: string[];
   cautions: string[];
@@ -365,7 +369,9 @@ function FragmentRow({
                   </ul>
                 )}
                 <p className="mt-2 text-xs text-[var(--text-faint)]">
-                  {compactNumber(row.quantity)} units on offer across {row.offers} listings.
+                  {row.quantity !== null && row.offers !== null
+                    ? `${compactNumber(row.quantity)} units on offer across ${row.offers} listings.`
+                    : 'Exchange depth was not measured in this market snapshot.'}
                 </p>
                 {row.incomplete ? <div className="mt-1.5"><Badge tone="warn">Incomplete costs</Badge></div> : null}
               </div>

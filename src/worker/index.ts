@@ -13,7 +13,8 @@ import { closeDb } from '@/lib/db/client';
 import { env } from '@/lib/env';
 import { log } from '@/lib/util/logger';
 import { runJob } from '@/lib/jobs/runner';
-import { buildCandles, pruneHistory, snapshotMarket, syncCatalog } from '@/lib/jobs/ingest';
+import { buildCandles, pruneHistory, syncCatalog } from '@/lib/jobs/ingest';
+import { collectNextUpstream } from '@/lib/jobs/collector';
 import { evaluateAlerts } from '@/lib/alerts/evaluate';
 import { REALMS } from '@/lib/game/constants';
 
@@ -29,43 +30,66 @@ function schedules(): Schedule[] {
   const config = env();
   const minute = 60_000;
 
-  return [
-    {
+  const result: Schedule[] = [];
+
+  /*
+   * Catalog collection remains disabled by default because its aggregate
+   * endpoints are not yet verified. If explicitly enabled later, the global
+   * HTTP pacer still protects it, but it shares request capacity with markets.
+   */
+  if (config.CATALOG_SYNC_ENABLED && config.UPSTREAM_ENABLED) {
+    result.push({
       name: 'catalog-sync',
       intervalMs: config.CATALOG_SYNC_INTERVAL_MINUTES * minute,
       initialDelayMs: 0,
       run: async () => {
         for (const realm of REALMS) {
-          await runJob(`catalog-sync:${realm.slug}`, (ctx) => syncCatalog(ctx, realm.id));
+          await runJob(`catalog-sync:${realm.slug}`, (ctx) =>
+            syncCatalog(ctx, realm.id),
+          );
         }
       },
-    },
-    {
-      name: 'market-snapshot',
-      intervalMs: config.MARKET_SNAPSHOT_INTERVAL_MINUTES * minute,
-      // Give the catalog sync a head start: a snapshot with no catalog does nothing.
+    });
+  }
+
+  /*
+   * One global market collector, regardless of realm count.
+   *
+   * Each tick plans exactly one action:
+   *   - an overdue whole-market ticker, or
+   *   - one product's full order book.
+   *
+   * runJob() prevents duplicate workers from executing the coordinator
+   * concurrently, while the HTTP client's PostgreSQL pacer independently
+   * enforces the hard upstream spacing.
+   */
+  if (config.UPSTREAM_ENABLED) {
+    result.push({
+      name: 'upstream-collection',
+      intervalMs: config.UPSTREAM_MIN_INTERVAL_MS,
       initialDelayMs: 30_000,
-      run: async () => {
-        for (const realm of REALMS) {
-          await runJob(`market-snapshot:${realm.slug}`, (ctx) => snapshotMarket(ctx, realm.id));
-        }
-      },
-    },
+      run: () =>
+        runJob('upstream-collection', (ctx) => collectNextUpstream(ctx)),
+    });
+  }
+
+  result.push(
     {
       name: 'build-candles',
       intervalMs: 30 * minute,
       initialDelayMs: 90_000,
       run: async () => {
         for (const realm of REALMS) {
-          await runJob(`build-candles:${realm.slug}`, (ctx) => buildCandles(ctx, realm.id));
+          await runJob(`build-candles:${realm.slug}`, (ctx) =>
+            buildCandles(ctx, realm.id),
+          );
         }
       },
     },
     {
       name: 'evaluate-alerts',
-      // Alerts are only as fresh as the snapshots they read, so evaluating more
-      // often than we collect would just be repeated work on unchanged data.
-      intervalMs: Math.max(5, config.MARKET_SNAPSHOT_INTERVAL_MINUTES) * minute,
+      intervalMs:
+        Math.max(5, config.MARKET_SNAPSHOT_INTERVAL_MINUTES) * minute,
       initialDelayMs: 120_000,
       run: () => runJob('evaluate-alerts', (ctx) => evaluateAlerts(ctx)),
     },
@@ -75,11 +99,15 @@ function schedules(): Schedule[] {
       initialDelayMs: 300_000,
       run: async () => {
         for (const realm of REALMS) {
-          await runJob(`prune-history:${realm.slug}`, (ctx) => pruneHistory(ctx, realm.id));
+          await runJob(`prune-history:${realm.slug}`, (ctx) =>
+            pruneHistory(ctx, realm.id),
+          );
         }
       },
     },
-  ];
+  );
+
+  return result;
 }
 
 const timers: NodeJS.Timeout[] = [];

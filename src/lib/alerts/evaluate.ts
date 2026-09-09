@@ -6,6 +6,10 @@ import { marketRepository } from '@/lib/market/service';
 import { priceChange } from '@/lib/market/statistics';
 import { log } from '@/lib/util/logger';
 import { deliver } from './deliver';
+import {
+  alertChangeToleranceRatio,
+  isQualityAlertSnapshotFresh,
+} from './freshness';
 import type { JobContext, JobResult } from '@/lib/jobs/runner';
 
 /**
@@ -13,9 +17,9 @@ import type { JobContext, JobResult } from '@/lib/jobs/runner';
  *
  * Runs against stored snapshots rather than issuing its own upstream requests: an
  * alert engine that polled the game per subscription would multiply our footprint by
- * the number of users, which is precisely the failure mode the whole caching
- * architecture exists to avoid. Alerts are therefore exactly as fresh as collection,
- * and the UI says so when you create one.
+ * the number of users, which is precisely the failure mode the background collection
+ * architecture exists to avoid. Quality alerts are skipped when their latest
+ * order-book snapshot is older than the alert freshness limit.
  *
  * Two properties keep this from becoming a notification firehose:
  *   - a per-alert cooldown, so a price oscillating around a threshold fires once;
@@ -100,9 +104,28 @@ async function evaluateOne(
   alert: typeof alerts.$inferSelect,
   productName: string,
 ): Promise<EvaluationOutcome> {
-  const snapshot = await marketRepository.latestSnapshot(alert.realmId, alert.resourceId);
+  const snapshotSource = alert.quality === 0 ? 'ticker' : 'order-book';
+
+  const snapshot = await marketRepository.latestSnapshotBySource(
+    alert.realmId,
+    alert.resourceId,
+    snapshotSource,
+  );
+
   if (!snapshot) {
     return { alertId: alert.id, fired: false, reason: 'no market data', observedValue: null };
+  }
+
+  if (
+    alert.quality > 0 &&
+    !isQualityAlertSnapshotFresh(snapshot.observedAt)
+  ) {
+    return {
+      alertId: alert.id,
+      fired: false,
+      reason: 'stale order-book data',
+      observedValue: null,
+    };
   }
 
   const price = marketRepository.priceAtQuality(snapshot.pricesByQuality, alert.quality, snapshot.lowestPrice);
@@ -137,16 +160,25 @@ async function evaluateOne(
     case 'pct_change_up':
     case 'pct_change_down': {
       const windowHours = alert.windowHours ?? 24;
-      const from = new Date(Date.now() - windowHours * 2 * 3_600_000);
+      const historyTo = snapshot.observedAt;
+      const from = new Date(
+        historyTo.getTime() - windowHours * 2 * 3_600_000,
+      );
+
       const history = await marketRepository.readHistory({
         realmId: alert.realmId,
         resourceId: alert.resourceId,
         quality: alert.quality,
         from,
+        to: historyTo,
         interval: 'raw',
       });
 
-      const change = priceChange(history.points, windowHours);
+      const change = priceChange(
+        history.points,
+        windowHours,
+        alertChangeToleranceRatio(windowHours),
+      );
       if (!change) {
         // Not enough history to measure the window is not the same as "no change".
         return { alertId: alert.id, fired: false, reason: 'insufficient history', observedValue: price };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildQuote, fillPrice } from './quote';
+import { buildQuote, buildTickerQuote, fillPrice } from './quote';
 import type { MarketOffer } from '@/lib/game/types';
 
 function offer(price: number, quantity: number, quality: number): MarketOffer {
@@ -70,6 +70,33 @@ describe('buildQuote', () => {
   it('omits qualities the book cannot satisfy', () => {
     const quote = buildQuote([offer(50, 10, 0)], { resourceId: 1, realmId: 0, observedAt });
     expect(quote.pricesByQuality[1]).toBeUndefined();
+  });
+});
+
+describe('buildTickerQuote', () => {
+  it('keeps unmeasured depth null rather than inventing zero supply', () => {
+    const quote = buildTickerQuote(
+      { resourceId: 66, realmId: 0, price: 0.289 },
+      '2026-09-07T04:21:35.000Z',
+    );
+
+    expect(quote.source).toBe('ticker');
+    expect(quote.lowestPrice).toBe(0.289);
+    expect(quote.totalQuantity).toBeNull();
+    expect(quote.offerCount).toBeNull();
+    expect(quote.pricesByQuality).toEqual({});
+    expect(quote.qualitiesAvailable).toEqual([]);
+  });
+
+  it('represents a sold-out ticker product with a null price', () => {
+    const quote = buildTickerQuote(
+      { resourceId: 153, realmId: 0, price: null },
+      '2026-09-07T04:21:35.000Z',
+    );
+
+    expect(quote.lowestPrice).toBeNull();
+    expect(quote.totalQuantity).toBeNull();
+    expect(quote.offerCount).toBeNull();
   });
 });
 

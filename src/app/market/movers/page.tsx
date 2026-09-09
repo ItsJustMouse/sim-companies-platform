@@ -80,7 +80,7 @@ export default async function MoversPage() {
                     <td className="px-4 py-1.5 text-right"><Delta percent={row.change24h?.percent ?? null} /></td>
                     <td className="px-4 py-1.5 text-right"><Delta percent={row.change7d?.percent ?? null} /></td>
                     <td className="tnum px-4 py-1.5 text-right text-[var(--text-muted)]">
-                      {compactNumber(row.quote?.totalQuantity ?? 0)}
+                      {compactNumber(row.quote?.totalQuantity ?? null)}
                     </td>
                     <td className="tnum px-4 py-1.5 text-right text-[var(--text-muted)]">{row.liquidity ?? '—'}</td>
                   </tr>

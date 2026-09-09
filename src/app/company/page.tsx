@@ -14,6 +14,7 @@ export const metadata = buildMetadata({
   description:
     'Describe your Sim Companies buildings and get specific, numbered recommendations: idle buildings, loss-making lines, better products for the buildings you already own, and inputs cheaper to buy than to make. Everything stays in your browser.',
   path: '/company',
+  index: false,
 });
 
 export default async function CompanyPage() {

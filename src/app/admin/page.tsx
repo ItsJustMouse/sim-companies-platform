@@ -38,7 +38,7 @@ export default async function AdminPage() {
   if (!user?.isAdmin) redirect('/');
 
   const health = await collectHealth();
-  const snapshotAge = minutesSince(health.collection.latestSnapshotAt);
+  const snapshotAge = minutesSince(health.collection.latestTickerAt);
 
   const failedJobs = health.jobs.filter((job) => job.status === 'failed');
 
@@ -55,7 +55,7 @@ export default async function AdminPage() {
 
       {snapshotAge !== null && snapshotAge > 60 ? (
         <Callout tone="warn" title="Collection may have stopped">
-          The most recent market snapshot is {Math.round(snapshotAge)} minutes old. Check that the worker is running.
+          The most recent headline ticker snapshot is {Math.round(snapshotAge)} minutes old. Check that the worker is running.
         </Callout>
       ) : null}
 
@@ -131,8 +131,8 @@ export default async function AdminPage() {
           <Stat label="Snapshots" value={compactNumber(health.collection.snapshotCount)} />
           <Stat label="Candles" value={compactNumber(health.collection.candleCount)} />
           <Stat
-            label="Last snapshot"
-            value={relativeTime(health.collection.latestSnapshotAt)}
+            label="Last headline"
+            value={relativeTime(health.collection.latestTickerAt)}
             tone={snapshotAge !== null && snapshotAge > 60 ? 'warn' : 'neutral'}
           />
           <Stat
@@ -144,10 +144,10 @@ export default async function AdminPage() {
             }
           />
           <Stat
-            label="Stale products"
-            value={number(health.collection.staleProducts)}
-            tone={health.collection.staleProducts > 0 ? 'warn' : 'neutral'}
-            hint="No snapshot in 24h"
+            label="Stale headlines"
+            value={number(health.collection.staleTickerProducts)}
+            tone={health.collection.staleTickerProducts > 0 ? 'warn' : 'neutral'}
+            hint="No ticker snapshot in 24h"
           />
         </div>
       </Card>

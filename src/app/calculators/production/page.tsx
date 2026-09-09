@@ -10,6 +10,7 @@ export const metadata = buildMetadata({
   description:
     'Work out the real cost and profit of producing anything in Sim Companies: inputs, wages, administration overhead, transport and the exchange fee, with profit per unit, per hour and per day and the break-even sale price.',
   path: '/calculators/production',
+  index: false,
 });
 
 export default async function ProductionCalculatorPage() {
