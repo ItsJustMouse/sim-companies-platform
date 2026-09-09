@@ -28,7 +28,7 @@ const COLUMNS = [
   {
     title: 'About',
     links: [
-      { href: '/about', label: 'About Ledgerforge' },
+      { href: '/about', label: 'About Simconomist' },
       { href: '/status', label: 'Data status' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
@@ -45,10 +45,10 @@ export function SiteFooter() {
             <div className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-mark.svg" alt="" width={24} height={24} className="rounded-md" />
-              <span className="font-semibold tracking-tight">Ledgerforge</span>
+              <span className="font-semibold tracking-tight">Simconomist</span>
             </div>
             <p className="mt-2 max-w-xs text-sm text-[var(--text-muted)]">
-              Price the market. Plan your next move.
+              Market intelligence for Sim Companies.
             </p>
           </div>
 
@@ -79,7 +79,7 @@ export function SiteFooter() {
         */}
         <div className="mt-9 border-t border-[var(--border)] pt-5 text-xs leading-relaxed text-[var(--text-faint)]">
           <p>
-            Ledgerforge is an independent, unofficial companion tool. It is not affiliated with, endorsed by, or
+            Simconomist is an independent, unofficial companion tool. It is not affiliated with, endorsed by, or
             operated by the makers of Sim Companies. &ldquo;Sim Companies&rdquo; and all related names, marks and game
             content belong to their respective owners and are referenced here for identification only.
           </p>

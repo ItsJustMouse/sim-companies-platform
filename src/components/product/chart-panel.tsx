@@ -159,7 +159,7 @@ export function ChartPanel({
         {visible.length > 0
           ? `${visible.length} observations. `
           : ''}
-        Price history is recorded by Ledgerforge — the game publishes only the current order book, so this series
+        Price history is recorded by Simconomist — the game publishes only the current order book, so this series
         begins when our collection did
         {collectionStartedAt ? ` (${new Date(collectionStartedAt).toISOString().slice(0, 10)})` : ''}.
       </p>

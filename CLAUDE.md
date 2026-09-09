@@ -1,4 +1,4 @@
-# Ledgerforge — working notes for contributors and agents
+# Simconomist — working notes for contributors and agents
 
 Independent market intelligence, analytics and production tools for **Sim Companies**
 players. Not affiliated with the game's operators.

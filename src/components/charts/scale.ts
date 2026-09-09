@@ -1,7 +1,7 @@
 /**
  * Chart scaling helpers.
  *
- * Ledgerforge draws its own charts rather than pulling in a charting library. The
+ * Simconomist draws its own charts rather than pulling in a charting library. The
  * charts we need are few and specific (a price series, a sparkline, a heatmap), a
  * library would add 50–150 kB to every page that shows one, and theming a
  * third-party renderer to match our tokens costs more than drawing the marks.

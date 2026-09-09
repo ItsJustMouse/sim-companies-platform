@@ -5,7 +5,7 @@ export default {
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5432/ledgerforge',
+    url: process.env.DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5432/simconomist',
   },
   strict: true,
   verbose: true,

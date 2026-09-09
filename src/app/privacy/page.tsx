@@ -3,7 +3,7 @@ import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
   title: 'Privacy',
-  description: 'What Ledgerforge stores, what it does not, and how to remove everything.',
+  description: 'What Simconomist stores, what it does not, and how to remove everything.',
   path: '/privacy',
 });
 
@@ -67,8 +67,8 @@ export default function PrivacyPage() {
             full control of your account, and you should decline.
           </p>
           <p>
-            Ledgerforge will never require your Sim Companies password or session cookie for company analysis. Any
-            company data you choose to use with Ledgerforge should be entered by you and kept under your control.
+            Simconomist will never require your Sim Companies password or session cookie for company analysis. Any
+            company data you choose to use with Simconomist should be entered by you and kept under your control.
           </p>
         </div>
       </Card>

@@ -12,7 +12,7 @@ const PUBLIC_BETA_ACCOUNTS_ENABLED: boolean = false;
 
 export const metadata = buildMetadata({
   title: 'Accounts — coming later in the Public Beta',
-  description: 'Ledgerforge accounts and server-side price alerts are not enabled in the v0.1 Public Beta yet.',
+  description: 'Simconomist accounts and server-side price alerts are not enabled in the v0.1 Public Beta yet.',
   path: '/account',
   index: false,
 });

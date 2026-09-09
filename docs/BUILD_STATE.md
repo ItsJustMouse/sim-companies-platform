@@ -10,7 +10,7 @@ this way, what works, what is blocked, and what to do next.
 
 ## Project status
 
-Ledgerforge is a functioning platform, not a scaffold. The vertical slice the brief
+Simconomist is a functioning platform, not a scaffold. The vertical slice the brief
 asked for is complete and verified running:
 
 ```

@@ -21,7 +21,7 @@ const schema = z.object({
   APP_URL: z.url().default('http://localhost:3000'),
 
   // ---- Datastores -------------------------------------------------------
-  DATABASE_URL: z.string().min(1).default('postgres://postgres:postgres@localhost:5432/ledgerforge'),
+  DATABASE_URL: z.string().min(1).default('postgres://postgres:postgres@localhost:5432/simconomist'),
   DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
   /** Optional. When absent the app uses an in-process cache (single instance only). */
   REDIS_URL: z.string().min(1).optional(),
@@ -36,7 +36,7 @@ const schema = z.object({
   SIMCOMPANIES_USER_AGENT: z
     .string()
     .min(1)
-    .default('Ledgerforge/0.1 (+https://ledgerforge.app; independent Sim Companies companion)'),
+    .default('Simconomist/0.1 (+https://simconomist.com; independent Sim Companies companion)'),
   /** Minimum milliseconds between two upstream requests, process-wide. */
   UPSTREAM_MIN_INTERVAL_MS: z.coerce.number().int().min(300_000).default(300_000),
   UPSTREAM_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(15_000),
@@ -69,7 +69,7 @@ const schema = z.object({
 
   // ---- Email (magic links, alerts) --------------------------------------
   SMTP_URL: z.string().min(1).optional(),
-  EMAIL_FROM: z.string().min(1).default('Ledgerforge <no-reply@ledgerforge.app>'),
+  EMAIL_FROM: z.string().min(1).default('Simconomist <no-reply@simconomist.com>'),
 
   // ---- Admin ------------------------------------------------------------
   /** Comma-separated list of email addresses granted admin access. */

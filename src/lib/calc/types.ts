@@ -1,7 +1,7 @@
 import type { Confidence } from '@/lib/game/constants';
 
 /**
- * Every calculation in Ledgerforge returns an *explained* result.
+ * Every calculation in Simconomist returns an *explained* result.
  *
  * A bare number is not good enough for a tool people make money decisions with: a
  * player must be able to see the formula, the inputs that went into it, which of

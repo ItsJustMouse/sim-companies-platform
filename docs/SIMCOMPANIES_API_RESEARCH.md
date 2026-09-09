@@ -104,7 +104,7 @@ Verified directly against `www.simcompanies.com` from a normal networked develop
 - `GET /api/v3/market/all/0/66/` → **HTTP 200 JSON**
   - Verified full sell-order book with `kind`, `quantity`, `quality`, `price`,
     `seller`, `posted`, and `fees`
-  - Ledgerforge successfully parsed and normalized 251 live offers during verification
+  - Simconomist successfully parsed and normalized 251 live offers during verification
 
 The resource-detail and Exchange paths are therefore verified rather than inferred.
 The catalog and building-list integrations still require replacement and must not be

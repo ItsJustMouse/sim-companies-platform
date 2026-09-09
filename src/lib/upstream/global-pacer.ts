@@ -4,7 +4,7 @@ import { log } from '@/lib/util/logger';
 const RATE_LIMIT_STATE_KEY = 'upstream_rate_limit';
 
 /*
- * Session-level advisory lock shared by every Ledgerforge process using the
+ * Session-level advisory lock shared by every Simconomist process using the
  * same PostgreSQL database.
  *
  * We hold it only while an upstream request is actually starting/running.
@@ -159,7 +159,7 @@ export async function acquireGlobalTurn(minIntervalMs: number): Promise<GlobalRe
 }
 
 /**
- * Database-backed request pacer shared by every Ledgerforge process that uses
+ * Database-backed request pacer shared by every Simconomist process that uses
  * the same PostgreSQL database.
  *
  * Normal flow:

@@ -9,7 +9,7 @@ export const revalidate = 60;
 export const metadata = buildMetadata({
   title: 'Data status',
   description:
-    'How fresh Ledgerforge market data is, where it comes from, how far back our collected history goes, and what is currently degraded.',
+    'How fresh Simconomist market data is, where it comes from, how far back our collected history goes, and what is currently degraded.',
   path: '/status',
 });
 
@@ -113,7 +113,7 @@ export default async function StatusPage() {
           </p>
           <p>
             <strong className="text-[var(--text)]">Price history is ours.</strong> The game provides current market
-            observations, not Ledgerforge&rsquo;s historical series, so every chart is built from snapshots we recorded.
+            observations, not Simconomist&rsquo;s historical series, so every chart is built from snapshots we recorded.
             Series begin when our collection did — we do not have, and will not fabricate, history from before then.
           </p>
           <p>

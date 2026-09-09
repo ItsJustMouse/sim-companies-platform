@@ -20,7 +20,7 @@ import type { Building, MarketOffer, Recipe, Resource } from '@/lib/game/types';
 import type { PublicCompany } from './normalise';
 
 /**
- * Typed accessors for the Sim Companies endpoints Ledgerforge depends on.
+ * Typed accessors for the Sim Companies endpoints Simconomist depends on.
  *
  * Paths were reconstructed from community documentation; none of them are covered by
  * an official contract. Each accessor therefore states what it is for, and

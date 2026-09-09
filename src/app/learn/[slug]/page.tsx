@@ -54,8 +54,8 @@ export default async function GuidePage({ params }: PageProps) {
           headline: guide.title,
           description: guide.description,
           url: siteUrl(`/learn/${guide.slug}`),
-          author: { '@type': 'Organization', name: 'Ledgerforge' },
-          publisher: { '@type': 'Organization', name: 'Ledgerforge' },
+          author: { '@type': 'Organization', name: 'Simconomist' },
+          publisher: { '@type': 'Organization', name: 'Simconomist' },
         }}
       />
 

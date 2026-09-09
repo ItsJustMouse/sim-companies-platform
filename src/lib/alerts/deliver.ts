@@ -59,7 +59,7 @@ async function deliverDiscord(request: DeliveryRequest): Promise<DeliveryResult>
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: 'Ledgerforge',
+        username: 'Simconomist',
         // Discord renders this as markdown; the message is our own text built from
         // numbers, never user-supplied content, so there is nothing to inject.
         content: request.message.slice(0, 1900),

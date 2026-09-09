@@ -239,8 +239,8 @@ export const GUIDES: readonly Guide[] = [
       {
         heading: 'The headline price is a market signal',
         body: [
-          'Ledgerforge broad-market pages use the headline price reported by the Sim Companies market ticker. It is not an average, and the ticker does not identify the quality, quantity or seller behind that price.',
-          'When Ledgerforge has measured a full order book for a product, it can separately show supply, listing count, liquidity and quality-specific prices. Those fields stay unavailable when they have not been measured.',
+          'Simconomist broad-market pages use the headline price reported by the Sim Companies market ticker. It is not an average, and the ticker does not identify the quality, quantity or seller behind that price.',
+          'When Simconomist has measured a full order book for a product, it can separately show supply, listing count, liquidity and quality-specific prices. Those fields stay unavailable when they have not been measured.',
         ],
         warning:
           'Do not assume the headline ticker price represents enough quantity for a large purchase. Check measured order-book depth before using it for high-volume cost estimates.',
@@ -341,7 +341,7 @@ export const GUIDES: readonly Guide[] = [
     title: 'Glossary',
     summary: 'Every term this site uses, defined without assuming finance knowledge.',
     description:
-      'Plain-language definitions of the financial and game terms used across Ledgerforge: margin, ROI, payback, opportunity cost, liquidity, volatility, overhead and more.',
+      'Plain-language definitions of the financial and game terms used across Simconomist: margin, ROI, payback, opportunity cost, liquidity, volatility, overhead and more.',
     level: 'Start here',
     minutes: 4,
     sections: [

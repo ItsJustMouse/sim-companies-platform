@@ -4,7 +4,7 @@ import { Badge } from './primitives';
 /**
  * The data-freshness contract, made visible.
  *
- * Every price in Ledgerforge is a measurement taken at a moment, from a source we do
+ * Every price in Simconomist is a measurement taken at a moment, from a source we do
  * not control. This component is how the product says so. "Real time" here means
  * "as current as the game's API legitimately allows" — never instantaneous — and a
  * value we cannot vouch for is labelled rather than quietly displayed.
@@ -24,9 +24,9 @@ const LABELS: Record<FreshnessKind, { label: string; tone: 'up' | 'warn' | 'neut
     help: 'The last successful read is older than our freshness window. Shown because an old price beats no price, but treat it with care.',
   },
   recorded: {
-    label: 'Recorded by Ledgerforge',
+    label: 'Recorded by Simconomist',
     tone: 'neutral',
-    help: 'The latest market observation Ledgerforge has recorded. The timestamp shows when the measurement was taken.',
+    help: 'The latest market observation Simconomist has recorded. The timestamp shows when the measurement was taken.',
   },
   unavailable: {
     label: 'Unavailable',
@@ -34,14 +34,14 @@ const LABELS: Record<FreshnessKind, { label: string; tone: 'up' | 'warn' | 'neut
     help: 'We have no price for this product — neither live nor recorded.',
   },
   collected: {
-    label: 'Collected by Ledgerforge',
+    label: 'Collected by Simconomist',
     tone: 'accent',
     help: 'History recorded by our own snapshots. The game does not publish price history, so this series starts when we started collecting.',
   },
   derived: {
     label: 'Calculated',
     tone: 'neutral',
-    help: 'Computed by Ledgerforge from market prices and game data, not read directly from the game.',
+    help: 'Computed by Simconomist from market prices and game data, not read directly from the game.',
   },
   fixture: {
     label: 'Sample data',

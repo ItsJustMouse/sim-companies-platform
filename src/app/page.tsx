@@ -11,7 +11,7 @@ export const revalidate = 120;
 export const metadata = buildMetadata({
   title: 'Sim Companies market prices, analytics and calculators',
   description:
-    'Sim Companies exchange prices with Ledgerforge-collected history, market analytics and practical planning calculators.',
+    'Sim Companies exchange prices with Simconomist-collected history, market analytics and practical planning calculators.',
   path: '/',
 });
 
@@ -19,7 +19,7 @@ const ENTRY_POINTS = [
   {
     href: '/exchange',
     title: 'Check market prices',
-    body: 'Browse current recorded prices, movement and Ledgerforge-collected history.',
+    body: 'Browse current recorded prices, movement and Simconomist-collected history.',
   },
   {
     href: '/market',
@@ -77,7 +77,7 @@ export default async function HomePage() {
           Know what the market is doing before you make your next move.
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[var(--text-muted)]">
-          Ledgerforge is an independent Sim Companies companion that records exchange prices over time, tracks
+          Simconomist is an independent Sim Companies companion that records exchange prices over time, tracks
           market movement and provides transparent calculators for planning your next move.
         </p>
 
@@ -111,7 +111,7 @@ export default async function HomePage() {
             <Stat
               label="History since"
               value={overview.collectionStartedAt ? new Date(overview.collectionStartedAt).toISOString().slice(0, 10) : '—'}
-              hint="Collected by Ledgerforge"
+              hint="Collected by Simconomist"
             />
           </div>
         </Card>
@@ -131,7 +131,7 @@ export default async function HomePage() {
           <Card>
             {movers.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-[var(--text-muted)]">
-                Not enough history yet to measure 24-hour movement. Ledgerforge builds this series from its own
+                Not enough history yet to measure 24-hour movement. Simconomist builds this series from its own
                 snapshots, so it fills in as collection continues.
               </p>
             ) : (

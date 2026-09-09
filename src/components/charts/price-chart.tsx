@@ -119,7 +119,7 @@ export function PriceChart({ points, overlay, height = 320, label = 'Price', col
         <p className="text-sm font-medium text-[var(--text-muted)]">No price history yet</p>
         <p className="max-w-md text-xs text-[var(--text-faint)]">
           {collectionStartedAt
-            ? `Ledgerforge has been recording this market since ${new Date(collectionStartedAt).toISOString().slice(0, 10)}. There are no observations inside the selected range.`
+            ? `Simconomist has been recording this market since ${new Date(collectionStartedAt).toISOString().slice(0, 10)}. There are no observations inside the selected range.`
             : 'The game does not publish price history, so this chart fills in from our own snapshots as they are collected.'}
         </p>
       </div>

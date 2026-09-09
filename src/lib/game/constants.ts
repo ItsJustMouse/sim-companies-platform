@@ -1,7 +1,7 @@
 /**
  * Game mechanics constants and their provenance.
  *
- * Ledgerforge is an independent third-party tool. The Sim Companies API is
+ * Simconomist is an independent third-party tool. The Sim Companies API is
  * undocumented and the game's formulas are not published by the operators, so every
  * constant here carries an explicit confidence level and source. The UI surfaces this
  * metadata wherever a number derived from it is displayed — a player must always be

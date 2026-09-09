@@ -9,7 +9,7 @@ import { ExplanationBuilder, type CalcAssumption, type Explained } from './types
 /**
  * The production economics core.
  *
- * Every profitability figure in Ledgerforge — the Exchange opportunity scanner, the
+ * Every profitability figure in Simconomist — the Exchange opportunity scanner, the
  * production calculator, the vertical-integration comparison, the company advisor —
  * resolves to this one function. There is exactly one implementation of the formula
  * in the codebase, so a correction here corrects the entire product at once.

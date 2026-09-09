@@ -93,7 +93,7 @@ export function CompanyWorkspace({ catalog }: { catalog: WorkspaceCatalog }) {
     try {
       const parsed = validate(JSON.parse(text));
       if (!parsed) {
-        setImportError('That does not look like a Ledgerforge company export.');
+        setImportError('That does not look like a Simconomist company export.');
         return;
       }
       replaceCompany(parsed);

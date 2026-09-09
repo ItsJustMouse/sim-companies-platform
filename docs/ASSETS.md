@@ -78,7 +78,7 @@ Everything visual that ships today is original to this project:
 
 | Asset | File | Notes |
 | --- | --- | --- |
-| Logo mark | `public/logo-mark.svg` | Three ascending ledger columns on an anvil base |
+| Logo mark | `public/logo-mark.svg` | Three ascending market columns on a solid foundation base |
 | Wordmark | `public/logo-wordmark.svg` | Mark plus name |
 | Favicon | `src/app/icon.svg` | The mark |
 
@@ -87,6 +87,6 @@ shares no motif with it.
 
 ## Attribution
 
-Wherever game data or artwork appears, the footer states on every page that Ledgerforge
+Wherever game data or artwork appears, the footer states on every page that Simconomist
 is independent and unofficial, and that game names and content belong to their owners.
 That notice is not conditional on artwork being used — it applies to the data too.
