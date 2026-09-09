@@ -4,7 +4,7 @@ import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
   title: 'Terms of use',
-  description: 'The terms on which Ledgerforge is provided.',
+  description: 'The terms on which Simconomist is provided.',
   path: '/terms',
 });
 
@@ -26,7 +26,7 @@ export default function TermsPage() {
         <CardHeader title="No affiliation" />
         <div className="p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
-            Ledgerforge is an independent, unofficial tool. It is not affiliated with, endorsed by, sponsored by or
+            Simconomist is an independent, unofficial tool. It is not affiliated with, endorsed by, sponsored by or
             operated by the makers of Sim Companies. All game names, marks and content belong to their respective
             owners and appear here only to identify the game this tool supports.
           </p>

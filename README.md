@@ -1,19 +1,19 @@
 <div align="center">
   <img src="public/logo-mark.svg" width="72" height="72" alt="">
-  <h1>Ledgerforge</h1>
-  <p><strong>Price the market. Plan the production.</strong></p>
+  <h1>Simconomist</h1>
+  <p><strong>Market intelligence for Sim Companies.</strong></p>
   <p>Independent market intelligence, analytics and production tools for <em>Sim Companies</em> players.</p>
 </div>
 
 ---
 
-> **Not affiliated with Sim Companies.** Ledgerforge is an independent, unofficial
+> **Not affiliated with Sim Companies.** Simconomist is an independent, unofficial
 > companion tool. All game names, marks and content belong to their respective owners.
 
 ## What it does
 
 Working out whether a production line is worth running currently means a spreadsheet,
-several browser tabs, and arithmetic that is easy to get subtly wrong. Ledgerforge does
+several browser tabs, and arithmetic that is easy to get subtly wrong. Simconomist does
 that arithmetic once, correctly, and shows its working.
 
 - **Exchange** — every product with live price, supply, listing depth, movement,

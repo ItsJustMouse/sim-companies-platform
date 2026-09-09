@@ -83,7 +83,7 @@ export interface MarketQuote {
   readonly realmId: number;
   /**
    * `ticker` means the broad market-ticker feed supplied the headline price only.
-   * `order-book` means Ledgerforge inspected the full Exchange book and therefore
+   * `order-book` means Simconomist inspected the full Exchange book and therefore
    * knows supply, listing count, quality depth and distribution statistics.
    */
   readonly source: 'ticker' | 'order-book';
@@ -111,9 +111,9 @@ export type DataProvenance =
   | 'live'
   /** Read from the game's API, but older than the freshness window. */
   | 'stale'
-  /** Computed by Ledgerforge from live or historical values. */
+  /** Computed by Simconomist from live or historical values. */
   | 'derived'
-  /** Recorded by Ledgerforge's own snapshot pipeline over time. */
+  /** Recorded by Simconomist's own snapshot pipeline over time. */
   | 'collected'
   /** Supplied by the user. */
   | 'user'

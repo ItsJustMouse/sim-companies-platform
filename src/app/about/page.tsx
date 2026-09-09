@@ -3,9 +3,9 @@ import { Card, CardHeader } from '@/components/ui/primitives';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
-  title: 'About Ledgerforge',
+  title: 'About Simconomist',
   description:
-    'Ledgerforge is an independent, unofficial Sim Companies companion for market observations, price history, analytics and transparent planning calculators.',
+    'Simconomist is an independent, unofficial Sim Companies companion for market observations, price history, analytics and transparent planning calculators.',
   path: '/about',
 });
 
@@ -13,7 +13,7 @@ export default function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">About Ledgerforge</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">About Simconomist</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--text-muted)]">
           An independent companion for Sim Companies players who want clearer market information and transparent
           planning tools — built by a player, for players, and not affiliated with the game in any way.
@@ -25,11 +25,11 @@ export default function AboutPage() {
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
             Sim Companies decisions often involve several prices, assumptions and calculations spread across multiple
-            screens. Ledgerforge brings useful market observations and planning tools together and shows the assumptions
+            screens. Simconomist brings useful market observations and planning tools together and shows the assumptions
             behind its calculations so you can check them rather than blindly trust them.
           </p>
           <p>
-            During the public beta, Ledgerforge focuses on recording exchange prices over time, building its own price
+            During the public beta, Simconomist focuses on recording exchange prices over time, building its own price
             history, highlighting market movement and providing transparent calculators for investment, borrowing
             and capital-comparison decisions.
           </p>
@@ -64,7 +64,7 @@ export default function AboutPage() {
         <CardHeader title="Independence" />
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
-            Ledgerforge is not affiliated with, endorsed by, or operated by the makers of Sim Companies. It is an
+            Simconomist is not affiliated with, endorsed by, or operated by the makers of Sim Companies. It is an
             independent third-party tool. &ldquo;Sim Companies&rdquo; and all related names, marks and game content
             belong to their respective owners and are used here only to identify the game this tool supports.
           </p>

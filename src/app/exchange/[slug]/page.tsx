@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   return buildMetadata({
     title: `${resource.name} price and market history`,
-    description: `Current Sim Companies exchange price for ${resource.name}, with Ledgerforge-collected price history, market range, quality pricing and data freshness.`,
+    description: `Current Sim Companies exchange price for ${resource.name}, with Simconomist-collected price history, market range, quality pricing and data freshness.`,
     path: `/exchange/${resource.slug}`,
   });
 }
@@ -100,7 +100,7 @@ export default async function ProductPage({ params }: PageProps) {
           name: resource.name,
           category: resource.category ?? undefined,
           url: siteUrl(`/exchange/${resource.slug}`),
-          description: `Sim Companies in-game commodity with Ledgerforge-collected exchange price history and market analysis.`,
+          description: `Sim Companies in-game commodity with Simconomist-collected exchange price history and market analysis.`,
         }}
       />
 
@@ -142,7 +142,7 @@ export default async function ProductPage({ params }: PageProps) {
 
       {quoteResult.freshness === 'unavailable' ? (
         <Callout tone="danger" title="No headline market price">
-          The market ticker currently reports no headline price for {resource.name}, or Ledgerforge has not recorded
+          The market ticker currently reports no headline price for {resource.name}, or Simconomist has not recorded
           a usable price observation for this product yet.
         </Callout>
       ) : null}
@@ -190,7 +190,7 @@ export default async function ProductPage({ params }: PageProps) {
       <Card>
         <CardHeader
           title="Price history"
-          description="Recorded by Ledgerforge from its own snapshots."
+          description="Recorded by Simconomist from its own snapshots."
           action={<ExportLinks dataset="history" params={{ resourceId: resource.id, realmId, rangeHours: 24 * 365 }} />}
         />
         <div className="p-4 sm:p-5">

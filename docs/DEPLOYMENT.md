@@ -74,13 +74,13 @@ every replica collects duplicate snapshots.
 same image runs both processes:
 
 ```bash
-docker build -t ledgerforge .
+docker build -t simconomist .
 
 # Web
-docker run -p 3000:3000 --env-file .env.production ledgerforge
+docker run -p 3000:3000 --env-file .env.production simconomist
 
 # Worker
-docker run --env-file .env.production -e WORKER_ENABLED=true ledgerforge npm run worker
+docker run --env-file .env.production -e WORKER_ENABLED=true simconomist npm run worker
 ```
 
 Local development uses `docker compose up -d` for Postgres and Redis, with the app on

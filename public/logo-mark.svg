@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ledgerforge">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Simconomist">
   <!--
-    Ledgerforge mark.
+    Simconomist mark.
 
-    Three ascending columns (a ledger, and a rising market) standing on an anvil
-    base (the forge, and production). The tallest column carries a struck notch
+    Three ascending columns representing market activity standing on a solid
+    base. The tallest column carries a distinctive notch
     where the two ideas meet. Drawn on a 64-unit grid with 4-unit rhythm so it
     stays crisp at favicon sizes.
   -->
@@ -22,9 +22,9 @@
   <rect x="25" y="23" width="7" height="21" rx="2" fill="#7dd3fc" opacity="0.9"/>
   <rect x="36" y="14" width="7" height="30" rx="2" fill="url(#lf-heat)"/>
 
-  <!-- Struck notch on the tallest column: the forge mark. -->
+  <!-- Distinctive notch on the tallest column. -->
   <path d="M36 26 L43 20 L43 27 L36 33 Z" fill="#11151c" opacity="0.55"/>
 
-  <!-- Anvil base. -->
+  <!-- Foundation base. -->
   <path d="M12 48 h40 a4 4 0 0 1 4 4 v2 a2 2 0 0 1 -2 2 H10 a2 2 0 0 1 -2 -2 v-2 a4 4 0 0 1 4 -4 Z" fill="url(#lf-heat)"/>
 </svg>

@@ -42,7 +42,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ledgerforge_ci
+          POSTGRES_DB: simconomist_ci
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -60,7 +60,7 @@ jobs:
       - name: Apply migrations
         run: npm run db:migrate
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledgerforge_ci
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/simconomist_ci
 
       # Catches the failure mode where a schema change was made without generating a
       # migration for it — the app would then work locally and break on deploy.
@@ -75,7 +75,7 @@ jobs:
             exit 1
           fi
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledgerforge_ci
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/simconomist_ci
 
   audit:
     name: Dependency audit

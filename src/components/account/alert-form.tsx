@@ -171,7 +171,7 @@ export function AlertForm({ products, hasEmail }: { products: readonly Product[]
 
       <p className="text-xs leading-relaxed text-[var(--text-faint)]">
         {quality === 0
-          ? 'Headline alerts use Ledgerforge’s broad market ticker snapshots. They are checked against collected data rather than polling the game when an alert is evaluated.'
+          ? 'Headline alerts use Simconomist’s broad market ticker snapshots. They are checked against collected data rather than polling the game when an alert is evaluated.'
           : `Quality-specific alerts use selectively collected order-book snapshots. They will not fire from order-book data that is ${qualityAlertMaxAgeHours} hours old or older, so an alert may wait for fresh depth data before it can trigger.`}
       </p>
     </form>

@@ -93,7 +93,7 @@ export default async function ExchangePage() {
 
       {overview.degraded ? (
         <Callout tone="danger" title="No market data">
-          Ledgerforge has no price observations for this realm yet. Prices appear once the collection worker has
+          Simconomist has no price observations for this realm yet. Prices appear once the collection worker has
           completed its first sweep.
         </Callout>
       ) : null}
@@ -109,7 +109,7 @@ export default async function ExchangePage() {
 
       <p className="text-xs leading-relaxed text-[var(--text-faint)]">
         Headline prices come from the Sim Companies market ticker. The ticker does not identify the quality, quantity
-        or seller behind that price, so supply, liquidity and quality-specific values are shown only when Ledgerforge
+        or seller behind that price, so supply, liquidity and quality-specific values are shown only when Simconomist
         has measured a full order book. Percentage changes compare against the closest recorded observation to the
         stated age; when no suitable observation exists the cell shows a dash.
       </p>

@@ -1,8 +1,8 @@
 {
-  "name": "ledgerforge",
+  "name": "simconomist",
   "version": "0.1.0",
   "private": true,
-  "description": "Ledgerforge — independent market intelligence, analytics and production tools for Sim Companies players.",
+  "description": "Simconomist — independent market intelligence, analytics and production tools for Sim Companies players.",
   "engines": {
     "node": ">=22.0.0"
   },

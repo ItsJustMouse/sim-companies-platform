@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 /**
- * Ledgerforge database schema.
+ * Simconomist database schema.
  *
  * Organised into five concerns that are deliberately kept separable, because they
  * have different retention rules, different privacy weight and different growth
@@ -96,7 +96,7 @@ export const recipes = pgTable(
 );
 
 // ---------------------------------------------------------------------------
-// 2. Market history (collected by Ledgerforge; irreplaceable)
+// 2. Market history (collected by Simconomist; irreplaceable)
 // ---------------------------------------------------------------------------
 
 /**
@@ -269,7 +269,7 @@ export const watchlistItems = pgTable(
 /**
  * Linked Sim Companies companies.
  *
- * Only *public* identifiers are stored. Ledgerforge does not hold game credentials:
+ * Only *public* identifiers are stored. Simconomist does not hold game credentials:
  * the game exposes no third-party authorisation mechanism, so anything requiring a
  * player's own session stays in that player's browser (docs/SECURITY.md).
  */

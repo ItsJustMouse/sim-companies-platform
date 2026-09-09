@@ -68,7 +68,7 @@ export async function GET(request: Request) {
     }
     const history = await getHistory({ realmId, resourceId, quality, rangeHours });
     const rows = history.points.map((point) => ({ observed_at: point.at, price: point.price }));
-    return respond(rows, format, `ledgerforge-history-${resourceId}-q${quality}`, ['observed_at', 'price']);
+    return respond(rows, format, `simconomist-history-${resourceId}-q${quality}`, ['observed_at', 'price']);
   }
 
   if (dataset === 'opportunities') {
@@ -96,7 +96,7 @@ export async function GET(request: Request) {
       change_24h_percent: o.change24h,
       observed_at: o.observedAt,
     }));
-    return respond(rows, format, 'ledgerforge-opportunities');
+    return respond(rows, format, 'simconomist-opportunities');
   }
 
   const overview = await getMarketOverview(realmId);
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
     observed_at: row.observedAt,
   }));
 
-  return respond(rows, format, 'ledgerforge-market');
+  return respond(rows, format, 'simconomist-market');
 }
 
 function respond(
@@ -132,7 +132,7 @@ function respond(
     return NextResponse.json(
       {
         generatedAt: new Date().toISOString(),
-        source: 'Ledgerforge — independent Sim Companies companion. Figures are observations, not official data.',
+        source: 'Simconomist — independent Sim Companies companion. Figures are observations, not official data.',
         rowCount: rows.length,
         rows,
       },

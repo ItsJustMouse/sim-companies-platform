@@ -1,17 +1,17 @@
-name: ledgerforge
+name: simconomist
 
 services:
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ledgerforge
+      POSTGRES_USER: simconomist
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      POSTGRES_DB: ledgerforge
+      POSTGRES_DB: simconomist
     volumes:
-      - ledgerforge_pgdata:/var/lib/postgresql/data
+      - simconomist_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ledgerforge -d ledgerforge']
+      test: ['CMD-SHELL', 'pg_isready -U simconomist -d simconomist']
       interval: 5s
       timeout: 5s
       retries: 20
@@ -44,7 +44,7 @@ services:
         max-file: '3'
 
   web:
-    image: ledgerforge:0.1
+    image: simconomist:0.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -63,9 +63,9 @@ services:
       MARKET_SNAPSHOT_INTERVAL_MINUTES: ${MARKET_SNAPSHOT_INTERVAL_MINUTES:-15}
       CATALOG_SYNC_INTERVAL_MINUTES: ${CATALOG_SYNC_INTERVAL_MINUTES:-720}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
-      EMAIL_FROM: ${EMAIL_FROM:-Ledgerforge <no-reply@ledgerforge.example>}
+      EMAIL_FROM: ${EMAIL_FROM:-Simconomist <no-reply@simconomist.com>}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
-      DATABASE_URL: postgres://ledgerforge:${POSTGRES_PASSWORD}@postgres:5432/ledgerforge
+      DATABASE_URL: postgres://simconomist:${POSTGRES_PASSWORD}@postgres:5432/simconomist
       REDIS_URL: redis://redis:6379
       UPSTREAM_ENABLED: 'false'
       WORKER_ENABLED: 'false'
@@ -83,7 +83,7 @@ services:
         max-file: '5'
 
   worker:
-    image: ledgerforge:0.1
+    image: simconomist:0.1
     restart: unless-stopped
     environment:
       NODE_ENV: 'production'
@@ -99,9 +99,9 @@ services:
       MARKET_SNAPSHOT_INTERVAL_MINUTES: ${MARKET_SNAPSHOT_INTERVAL_MINUTES:-15}
       CATALOG_SYNC_INTERVAL_MINUTES: ${CATALOG_SYNC_INTERVAL_MINUTES:-720}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
-      EMAIL_FROM: ${EMAIL_FROM:-Ledgerforge <no-reply@ledgerforge.example>}
+      EMAIL_FROM: ${EMAIL_FROM:-Simconomist <no-reply@simconomist.com>}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
-      DATABASE_URL: postgres://ledgerforge:${POSTGRES_PASSWORD}@postgres:5432/ledgerforge
+      DATABASE_URL: postgres://simconomist:${POSTGRES_PASSWORD}@postgres:5432/simconomist
       REDIS_URL: redis://redis:6379
       UPSTREAM_ENABLED: 'true'
       WORKER_ENABLED: 'true'
@@ -120,7 +120,7 @@ services:
         max-file: '5'
 
   migrate:
-    image: ledgerforge:0.1
+    image: simconomist:0.1
     profiles: ['tools']
     environment:
       NODE_ENV: 'production'
@@ -136,9 +136,9 @@ services:
       MARKET_SNAPSHOT_INTERVAL_MINUTES: ${MARKET_SNAPSHOT_INTERVAL_MINUTES:-15}
       CATALOG_SYNC_INTERVAL_MINUTES: ${CATALOG_SYNC_INTERVAL_MINUTES:-720}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
-      EMAIL_FROM: ${EMAIL_FROM:-Ledgerforge <no-reply@ledgerforge.example>}
+      EMAIL_FROM: ${EMAIL_FROM:-Simconomist <no-reply@simconomist.com>}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
-      DATABASE_URL: postgres://ledgerforge:${POSTGRES_PASSWORD}@postgres:5432/ledgerforge
+      DATABASE_URL: postgres://simconomist:${POSTGRES_PASSWORD}@postgres:5432/simconomist
       REDIS_URL: redis://redis:6379
       UPSTREAM_ENABLED: 'false'
       WORKER_ENABLED: 'false'
@@ -150,4 +150,4 @@ services:
         condition: service_healthy
 
 volumes:
-  ledgerforge_pgdata:
+  simconomist_pgdata:

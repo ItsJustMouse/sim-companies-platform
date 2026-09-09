@@ -5,7 +5,7 @@ import type { MarketQuote } from '@/lib/game/types';
 import type { PricePoint } from './statistics';
 
 /**
- * Storage and retrieval of Ledgerforge's own market observations.
+ * Storage and retrieval of Simconomist's own market observations.
  *
  * This is the one dataset the platform cannot re-fetch: the game exposes only the
  * current order book, so any history the product shows is history we recorded. Every
@@ -295,7 +295,7 @@ export function priceAtQuality(
   fallback: number | null,
 ): number | null {
   if (quality === 0) {
-    // Series 0 is Ledgerforge's headline/default price sentinel. It does not mean
+    // Series 0 is Simconomist's headline/default price sentinel. It does not mean
     // the observed product quality was literally Q0.
     if (fallback !== null) return fallback;
   }

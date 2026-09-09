@@ -10,8 +10,8 @@ import { env } from '@/lib/env';
  */
 
 export const SITE = {
-  name: 'Ledgerforge',
-  tagline: 'Price the market. Plan your next move.',
+  name: 'Simconomist',
+  tagline: 'Market intelligence for Sim Companies.',
   description:
     'Independent Sim Companies market observations, price history, market analytics and transparent planning calculators.',
 } as const;

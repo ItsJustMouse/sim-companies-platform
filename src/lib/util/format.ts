@@ -2,7 +2,7 @@
  * Presentation helpers.
  *
  * Formatting lives in one place because "what does an unknown value look like" is a
- * product decision, not a per-component one. The answer throughout Ledgerforge is an
+ * product decision, not a per-component one. The answer throughout Simconomist is an
  * em dash: a missing price is never rendered as $0.00, which would read as free.
  */
 

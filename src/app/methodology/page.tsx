@@ -7,7 +7,7 @@ import { breadcrumbs, buildMetadata } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'How we calculate',
   description:
-    'How Ledgerforge handles market observations, calculations, assumptions and uncertain Sim Companies mechanics.',
+    'How Simconomist handles market observations, calculations, assumptions and uncertain Sim Companies mechanics.',
   path: '/methodology',
 });
 
@@ -88,7 +88,7 @@ breakEvenPrice     = totalCostPerUnit / (exchange ? 1 - exchangeFee : 1)`}
         <div className="space-y-3 p-4 text-sm leading-relaxed text-[var(--text-muted)] sm:p-5">
           <p>
             <strong className="text-[var(--text)]">Retail demand.</strong> How a store&rsquo;s sale rate responds to
-            price, quality and local demand is not published anywhere we could verify. Ledgerforge therefore does not
+            price, quality and local demand is not published anywhere we could verify. Simconomist therefore does not
             expose its retail calculator in the v0.1 Public Beta rather than presenting an incomplete model as reliable.
           </p>
           <p>
@@ -111,7 +111,7 @@ breakEvenPrice     = totalCostPerUnit / (exchange ? 1 - exchangeFee : 1)`}
           <p>
             A single background collector reads the whole-market ticker on a schedule for headline prices. Separate
             product-specific order-book checks rotate more slowly because each requires its own upstream request.
-            Ledgerforge builds its historical series from the observations it records, so a series starts when our
+            Simconomist builds its historical series from the observations it records, so a series starts when our
             collection did and we never fabricate earlier history.
           </p>
           <p>
