@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { search } from '@/lib/search';
+import { rateLimitRequest, retryAfterSeconds } from '@/lib/util/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,25 @@ const querySchema = z.object({
  * way to make the server do arbitrary edit-distance work.
  */
 export async function GET(request: Request) {
+  const requestLimit = await rateLimitRequest(request, {
+    scope: 'api-search',
+    limit: 120,
+    windowSeconds: 60,
+  });
+
+  if (!requestLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again shortly.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfterSeconds(requestLimit.resetAt)),
+          'Cache-Control': 'no-store',
+        },
+      },
+    );
+  }
+
   const url = new URL(request.url);
   const parsed = querySchema.safeParse({
     q: url.searchParams.get('q') ?? '',

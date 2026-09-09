@@ -4,6 +4,7 @@ import { DEFAULT_REALM_ID, REALMS } from '@/lib/game/constants';
 import { getMarketOverview, getHistory } from '@/lib/market/service';
 import { scanOpportunities, sortOpportunities } from '@/lib/market/opportunities';
 import { toCsv } from '@/lib/util/csv';
+import { rateLimitRequest, retryAfterSeconds } from '@/lib/util/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,25 @@ const querySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const requestLimit = await rateLimitRequest(request, {
+    scope: 'api-export',
+    limit: 20,
+    windowSeconds: 300,
+  });
+
+  if (!requestLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again shortly.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfterSeconds(requestLimit.resetAt)),
+          'Cache-Control': 'no-store',
+        },
+      },
+    );
+  }
+
   const url = new URL(request.url);
   const parsed = querySchema.safeParse(Object.fromEntries(url.searchParams));
 

@@ -2,13 +2,12 @@
 
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { createHash } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema';
 import { env } from '@/lib/env';
 import { log } from '@/lib/util/logger';
-import { rateLimit } from '@/lib/util/rate-limit';
+import { clientKeyFromHeaders, rateLimit } from '@/lib/util/rate-limit';
 import { isPlausibleEmail, normaliseEmail } from './tokens';
 import { currentUser, destroyAllSessions, destroySession, issueLoginToken } from './session';
 
@@ -35,10 +34,7 @@ export interface ActionState {
  * not to keep a record of who made them.
  */
 async function clientKey(): Promise<string> {
-  const headerList = await headers();
-  const forwarded = headerList.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const raw = forwarded ?? headerList.get('x-real-ip') ?? 'unknown';
-  return createHash('sha256').update(raw).digest('hex').slice(0, 32);
+  return clientKeyFromHeaders(await headers());
 }
 
 export async function requestSignInLink(_previous: ActionState, formData: FormData): Promise<ActionState> {

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { cache } from '@/lib/cache/store';
 
 /**
@@ -5,13 +6,12 @@ import { cache } from '@/lib/cache/store';
  *
  * Backed by the shared cache, so limits hold across replicas when Redis is
  * configured and degrade to per-instance when it is not. Fixed-window rather than a
- * sliding log because the endpoints being protected — sending login emails, writing
- * alerts — care about "roughly this many per minute", and a sliding window costs
- * more storage and complexity than that precision is worth.
+ * sliding log because the endpoints being protected care about "roughly this many
+ * requests per window", and a sliding window costs more storage and complexity than
+ * that precision is worth.
  *
- * Fails **open** on a cache error. A rate limiter that fails closed turns a cache
- * outage into a total outage; these limits guard against nuisance and cost, not
- * against a determined attacker, for whom the real defences are elsewhere.
+ * Fails open on a cache error. These limits protect against nuisance and accidental
+ * cost amplification; availability should not depend on the cache being healthy.
  */
 
 export interface RateLimitResult {
@@ -20,10 +20,27 @@ export interface RateLimitResult {
   readonly resetAt: number;
 }
 
+interface HeaderReader {
+  get(name: string): string | null;
+}
+
+/**
+ * Produces a stable, non-reversible key for per-client limits without retaining the
+ * source address in cache keys or logs.
+ *
+ * Caddy supplies the forwarding headers in production. The first X-Forwarded-For
+ * value is the original client in that deployment.
+ */
+export function clientKeyFromHeaders(headerList: HeaderReader): string {
+  const forwarded = headerList.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const raw = forwarded ?? headerList.get('x-real-ip') ?? 'unknown';
+  return createHash('sha256').update(raw).digest('hex').slice(0, 32);
+}
+
 export async function rateLimit(args: {
   /** Stable identifier for the actor: user id, or a hashed client key. */
   key: string;
-  /** Distinguishes limits, e.g. 'login' from 'alert-create'. */
+  /** Distinguishes limits, e.g. 'signin' from 'api-export'. */
   scope: string;
   limit: number;
   windowSeconds: number;
@@ -47,8 +64,34 @@ export async function rateLimit(args: {
       args.windowSeconds + 1,
     );
 
-    return { allowed: true, remaining: args.limit - used - 1, resetAt };
+    return {
+      allowed: true,
+      remaining: args.limit - used - 1,
+      resetAt,
+    };
   } catch {
-    return { allowed: true, remaining: args.limit, resetAt };
+    return {
+      allowed: true,
+      remaining: args.limit,
+      resetAt,
+    };
   }
+}
+
+export async function rateLimitRequest(
+  request: Request,
+  args: {
+    scope: string;
+    limit: number;
+    windowSeconds: number;
+  },
+): Promise<RateLimitResult> {
+  return rateLimit({
+    ...args,
+    key: clientKeyFromHeaders(request.headers),
+  });
+}
+
+export function retryAfterSeconds(resetAt: number): number {
+  return Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
 }

@@ -157,16 +157,31 @@ the browser is closed. Those limits are stated on the page, not buried.
 
 ---
 
-## Outstanding before a public launch
+## Public Beta security status
 
-1. **Encrypt `alerts.destination` at rest** with a key from the environment. The
-   column is documented as encrypted; the implementation is not yet there.
-2. **Nonce-based CSP**, removing `'unsafe-inline'` from `script-src`.
-3. **Dependency scanning in CI** — `npm audit` runs; wire a failure threshold.
-4. **Confirm the upstream contract** with the game's operators (see the research doc).
-5. **Rate limit the public API routes** (`/api/search`, `/api/history`, `/api/export`),
-   which are currently unlimited.
-6. **Passkeys**, replacing magic links as the primary factor.
+The v0.1 Public Beta keeps accounts and server-side alerts disabled. Before those
+gated features are exposed publicly, `alerts.destination` must be encrypted at rest
+and the authentication and delivery paths must receive another security review.
+
+The public API routes are rate limited per hashed client key in addition to their
+existing input and range caps:
+
+- `/api/search`: 120 requests per minute.
+- `/api/history`: 60 requests per minute.
+- `/api/export`: 20 requests per five minutes.
+
+Production uses the shared Redis cache for these fixed-window limits. They fail open
+if the cache is unavailable by design: the limits reduce nuisance and cost
+amplification rather than acting as the application's primary security boundary.
+
+CI runs the complete `npm run verify` release gate and fails on high- or
+critical-severity `npm audit` findings.
+
+### Outstanding hardening
+
+1. **Nonce-based CSP**, removing `'unsafe-inline'` from `script-src`.
+2. **Confirm the upstream contract** with the game's operators (see the research doc).
+3. **Passkeys** before reconsidering the authentication model for gated account features.
 
 ## Reporting a vulnerability
 
